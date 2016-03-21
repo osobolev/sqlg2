@@ -1,0 +1,80 @@
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven'
+
+    group = 'com.github.osobolev.sqlg2'
+    version = '4.0'
+
+    targetCompatibility = '1.5'
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+
+    jar {
+        manifest {
+            attributes('Implementation-Version': version)
+        }
+    }
+}
+
+def buildSource(projects) {
+    def sd = ['src']
+    projects.each { 
+        sd.add("$rootProject.projectDir/$it/src")
+    }
+    sd
+}
+
+project(':sqlg2-client') {
+    sourceSets.main.java.srcDirs = buildSource(['modules/core', 'modules/remote-common', 'modules/remote-client'])
+}
+
+project(':sqlg2-full') {
+    sourceSets.main.java.srcDirs = buildSource(['modules/core', 'modules/runtime', 'modules/remote-common', 'modules/server-common', 'modules/remote-server', 'modules/remote-client', 'modules/local-server', 'modules/preprocess'])
+    dependencies {
+        compileOnly files('lib/antlr-runtime.jar')
+        compile 'org.apache.ant:ant:1.9.5'
+    }
+    jar {
+        from zipTree('lib/antlr-runtime.jar')
+    }
+}
+
+project(':sqlg2-local') {
+    sourceSets.main.java.srcDirs = buildSource(['modules/core', 'modules/runtime', 'modules/server-common', 'modules/local-server'])
+}
+
+project(':sqlg2-runtime') {
+    sourceSets.main.java.srcDirs = buildSource(['modules/core', 'modules/runtime', 'modules/remote-common', 'modules/server-common', 'modules/remote-server', 'modules/remote-client', 'modules/local-server'])
+}
+
+project(':sqlg2-gwt') {
+    compileJava { onlyIf { false } }
+
+    jar {
+        into ('sqlg2') {
+            def dir = "${rootProject.projectDir}/modules/preprocess/src/sqlg2"
+            from(["${dir}/RowType.java", "${dir}/EditableRowType.java", "src/sqlg2/SQLG.gwt.xml"])
+        }
+    }
+}
+
+project(':') {
+    apply plugin: 'java'
+
+    jar { onlyIf { false } }
+
+    task copyToTarget(type: Copy, dependsOn: subprojects.jar) {
+        from(subprojects.jar)
+        into 'target'
+    }
+    
+    task cleanTarget(type: Delete) {
+        delete 'target'
+    }
+
+    build.dependsOn(copyToTarget)
+    clean.dependsOn(cleanTarget)
+}

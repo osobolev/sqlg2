@@ -1,0 +1,9 @@
+include 'modules/remote-client', 'modules/preprocess', 'modules/local-server', 'modules/runtime', 'modules/gwt'
+
+rootProject.name = 'sqlg2'
+
+project(':modules/remote-client').name = 'sqlg2-client'
+project(':modules/preprocess').name = 'sqlg2-full'
+project(':modules/local-server').name = 'sqlg2-local'
+project(':modules/runtime').name = 'sqlg2-runtime'
+project(':modules/gwt').name = 'sqlg2-gwt'
