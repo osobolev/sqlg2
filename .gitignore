@@ -6,3 +6,5 @@ build/
 /lib/
 /distr/
 /doc/api/
+*.log
+wrapper/
