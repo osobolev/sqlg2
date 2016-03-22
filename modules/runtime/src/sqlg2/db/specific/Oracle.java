@@ -12,13 +12,13 @@ import java.sql.*;
 /**
  * {@link DBSpecific} implementation for Oracle.
  */
-public final class OracleDBSpecific implements DBSpecific {
+public final class Oracle implements DBSpecific {
 
     private final Method getBinaryOutputStream;
     private final Method getCharacterOutputStream;
     private final int resultSetType;
 
-    public OracleDBSpecific() {
+    public Oracle() {
         Method getBinaryOutputStream;
         try {
             getBinaryOutputStream = Class.forName("oracle.sql.BLOB").getMethod("getBinaryOutputStream");
@@ -130,7 +130,7 @@ public final class OracleDBSpecific implements DBSpecific {
     }
 
     public String getCheckerClassName() {
-        return "sqlg2.checker.OracleSqlChecker";
+        return "sqlg2.checker.Oracle";
     }
 
     public int getResultSetType() {

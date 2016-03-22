@@ -1,6 +1,6 @@
 package sqlg2;
 
-import sqlg2.db.specific.OracleDBSpecific;
+import sqlg2.db.specific.Oracle;
 
 import java.io.File;
 
@@ -18,7 +18,7 @@ class Options {
     protected String tab = null;
     protected String driverClass = "oracle.jdbc.driver.OracleDriver";
     protected String mapperClass = MapperImpl.class.getName();
-    protected String dbClass = OracleDBSpecific.class.getName();
+    protected String dbClass = Oracle.class.getName();
     protected String wrapperClass = DefaultWrapperGeneratorFactory.class.getName();
     protected String user = null;
     protected String pass = null;

@@ -1,16 +1,14 @@
 package sqlg2.checker;
 
-import sqlg2.db.specific.PgDBSpecific;
-
 import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
  * SQL checker for PostgreSQL
  */
-public final class PgSqlChecker extends NoSqlChecker {
+public final class Postgres extends Generic {
 
     public void checkSequenceExists(Connection conn, String name) throws SQLException {
-        checkSql(conn, PgDBSpecific.getNextSeqSql(name));
+        checkSql(conn, sqlg2.db.specific.Postgres.getNextSeqSql(name));
     }
 }

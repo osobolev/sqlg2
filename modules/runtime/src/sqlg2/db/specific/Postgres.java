@@ -8,7 +8,7 @@ import java.sql.SQLException;
 /**
  * {@link sqlg2.db.DBSpecific} implementation for PostgreSQL.
  */
-public final class PgDBSpecific extends NoDBSpecific {
+public final class Postgres extends Generic {
 
     public static String getNextSeqSql(String sequence) {
         return "SELECT NEXTVAL('" + sequence + "')";
@@ -41,6 +41,6 @@ public final class PgDBSpecific extends NoDBSpecific {
     }
 
     public String getCheckerClassName() {
-        return "sqlg2.checker.PgSqlChecker";
+        return "sqlg2.checker.Postgres";
     }
 }

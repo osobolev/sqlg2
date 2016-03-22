@@ -5,9 +5,9 @@ import sqlg2.SqlChecker;
 import java.sql.*;
 
 /**
- * Base SQL checker for generic JDBC database - disallows sequences.
+ * Base SQL checker for generic JDBC database - does not support sequences.
  */
-public class NoSqlChecker implements SqlChecker {
+public class Generic implements SqlChecker {
 
     public String getCurrentSchema(DatabaseMetaData meta) throws SQLException {
         return meta.getUserName();

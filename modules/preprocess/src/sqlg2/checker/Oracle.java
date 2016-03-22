@@ -1,7 +1,6 @@
 package sqlg2.checker;
 
 import sqlg2.SqlChecker;
-import sqlg2.db.specific.OracleDBSpecific;
 import sqlg2.queries.QueryParser;
 
 import java.sql.*;
@@ -9,14 +8,14 @@ import java.sql.*;
 /**
  * SQL checker for Oracle
  */
-public final class OracleSqlChecker implements SqlChecker {
+public final class Oracle implements SqlChecker {
 
     public String getCurrentSchema(DatabaseMetaData meta) throws SQLException {
         return meta.getUserName();
     }
 
     public void checkSequenceExists(Connection conn, String name) throws SQLException {
-        checkSql(conn, OracleDBSpecific.getNextSeqSql(name));
+        checkSql(conn, sqlg2.db.specific.Oracle.getNextSeqSql(name));
     }
 
     public void checkSql(Connection conn, String sql) throws SQLException {

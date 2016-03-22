@@ -9,7 +9,7 @@ import java.sql.*;
 /**
  * {@link DBSpecific} implementation for generic JDBC database.
  */
-public class NoDBSpecific implements DBSpecific {
+public class Generic implements DBSpecific {
 
     public long getNextId(Connection conn, String sequence) throws SQLException {
         throw new SQLException("Database does not support sequences");
@@ -32,7 +32,7 @@ public class NoDBSpecific implements DBSpecific {
     }
 
     public String getCheckerClassName() {
-        return "sqlg2.checker.NoSqlChecker";
+        return "sqlg2.checker." + getClass().getSimpleName();
     }
 
     public int getResultSetType() {
