@@ -11,6 +11,8 @@ repositories {
 
 sourceSets.main.java.srcDirs = ['src']
 
+compileJava.options.encoding = 'UTF-8'
+
 dependencies {
     compile 'com.github.osobolev.sqlg2:sqlg2-full:4.0'
     runtime driverClasspath
@@ -21,7 +23,8 @@ task preprocess << {
     ant.sqlg(classpath: configurations.runtime.asPath,
              driverclass: jdbcDriver, dbclass: dbClass,
              url: jdbcUrl, user: username, password: password,
-             implpack: 'wrapper', wrappack: 'wrapper', srcroot: 'src') {
+             implpack: 'wrapper', wrappack: 'wrapper',
+             srcroot: 'src', encoding: compileJava.options.encoding) {
         fileset(dir: 'src') {
             include(name: 'layers/dao/Layer1.java')
         }

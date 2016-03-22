@@ -9,6 +9,8 @@ subprojects {
 
     targetCompatibility = '1.5'
 
+    compileJava.options.encoding = 'UTF-8'
+
     repositories {
         mavenLocal()
         mavenCentral()

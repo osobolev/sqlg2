@@ -9,6 +9,8 @@ repositories {
 
 sourceSets.main.java.srcDirs = ['src']
 
+compileJava.options.encoding = 'UTF-8'
+
 dependencies {
     compile project(':mapper')
     compile 'com.github.osobolev.sqlg2:sqlg2-full:4.0'
@@ -22,7 +24,8 @@ task preprocess << {
              mapperclass: 'columns.mapper.CustomMapperImpl',
              runtimemapperclass: 'columns.mapper.CustomRuntimeMapperImpl',
              url: jdbcUrl, user: username, password: password,
-             implpack: 'wrapper', wrappack: 'wrapper', srcroot: 'src') {
+             implpack: 'wrapper', wrappack: 'wrapper',
+             srcroot: 'src', encoding: compileJava.options.encoding) {
         fileset(dir: 'src') {
             include(name: 'columns/db/UserDB.java')
         }
