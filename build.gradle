@@ -1,9 +1,11 @@
+allprojects {
+    group = 'com.github.osobolev.sqlg2'
+    version = '4.0'
+}
+
 subprojects {
     apply plugin: 'java'
     apply plugin: 'maven'
-
-    group = 'com.github.osobolev.sqlg2'
-    version = '4.0'
 
     targetCompatibility = '1.5'
 
@@ -22,6 +24,8 @@ subprojects {
         onlyIf {
             project.name == 'sqlg2-full'
         }
+
+        destinationDir = file("${rootProject.projectDir}/doc/api")
 
         include(['sqlg2/GBase.java', 'sqlg2/Parameter.java', 'sqlg2/SqlChecker.java',
                  'sqlg2/Business.java', 'sqlg2/BusinessNoSql.java',  'sqlg2/CheckParams.java', 
@@ -52,13 +56,25 @@ project(':sqlg2-client') {
 }
 
 project(':sqlg2-full') {
+    
     sourceSets.main.java.srcDirs = buildSource(['core', 'runtime', 'remote-common', 'server-common', 'remote-server', 'remote-client', 'local-server', 'preprocess'])
+
+    configurations { antlrLib }
+
     dependencies {
         compileOnly files('lib/antlr-runtime.jar')
-        compile 'org.apache.ant:ant:1.9.5'
+        compileOnly 'org.apache.ant:ant:1.9.5'
+        antlrLib 'antlr:antlr:2.7.7'
     }
+    
     jar {
         from zipTree('lib/antlr-runtime.jar')
+    }
+
+    task lexer(type: JavaExec) {
+        main = 'antlr.Tool'
+        classpath = configurations.antlrLib
+        args '-o', 'src/sqlg2/lexer', 'grammar/java15.g'
     }
 }
 
@@ -82,19 +98,44 @@ project(':sqlg2-gwt') {
 }
 
 project(':') {
-    apply plugin: 'java'
 
-    jar { onlyIf { false } }
+    task build(type: Copy, dependsOn: subprojects.jar) {
+        from subprojects.jar
+        into 'lib'
+    }
 
-    task copyToTarget(type: Copy, dependsOn: subprojects.jar) {
-        from(subprojects.jar)
-        into 'target'
+    task install(dependsOn: build) {
     }
     
-    task cleanTarget(type: Delete) {
-        delete 'target'
+    task clean(type: Delete) {
+        delete 'lib'
+        delete 'distr'
+        delete 'doc/api'
     }
 
-    build.dependsOn(copyToTarget)
-    clean.dependsOn(cleanTarget)
+    task cleanExamples (type: GradleBuild) {
+        buildFile = file('doc/examples/build.gradle')
+        tasks = ['clean']
+    }
+
+    task binDistr(type: Zip, dependsOn: [build, project(':sqlg2-full').javadoc, cleanExamples]) {
+        baseName = "sqlg2-bin-${project.version}"
+        destinationDir = file('distr')
+        from '.'
+        include 'lib/**'
+        include 'doc/**'
+    }
+
+    task srcDistr(type: Zip, dependsOn: [build, project(':sqlg2-full').javadoc, cleanExamples]) {
+        baseName = "sqlg2-src-${project.version}"
+        destinationDir = file('distr')
+        from '.'
+        include 'doc/**'
+        include 'modules/**'
+        exclude 'modules/**/build/**'
+        include 'build.gradle'
+        include 'settings.gradle'
+    }
+
+    task distr(dependsOn: [binDistr, srcDistr])
 }
