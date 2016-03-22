@@ -334,6 +334,14 @@ final class Main extends Options {
                 } catch (SQLException ex) {
                     // ignore
                 }
+                if (url.startsWith("jdbc:derby:")) {
+                    // Special case for Derby:
+                    try {
+                        DriverManager.getConnection("jdbc:derby:;shutdown=true");
+                    } catch (SQLException ex) {
+                        // ignore
+                    }
+                }
             }
             if (cleanup && workTmpDir != null) {
                 cleanup(workTmpDir);
