@@ -1,0 +1,35 @@
+ext {
+///*
+    // Embedded Derby:
+    def home = System.getProperty('user.home')
+    jdbcUrl = "jdbc:derby:${home}/TestDB;create = true"
+    username = ''
+    password = ''
+    jdbcDriver = 'org.apache.derby.jdbc.EmbeddedDriver'
+    dbClass = 'sqlg2.db.specific.Generic'
+    driverClasspath = 'org.apache.derby:derby:10.11.1.1'
+    sqlScript = 'schema_derby.sql'
+//*/
+/*
+    // Oracle:
+    jdbcUrl = 'jdbc:oracle:thin:@localhost:1521:ST'
+    username = 'sqlg2'
+    password = 'sqlg2'
+    jdbcDriver = 'oracle.jdbc.driver.OracleDriver'
+    dbClass = 'sqlg2.db.specific.Oracle'
+    driverClasspath = ['ojdbc:ojdbc6:11.2.0.2.0', 'ojdbc:orai18n:11.2.0.2.0']
+    sqlScript = 'schema_ora.sql'
+    sqlDelimiter = '/'
+*/
+/*
+    // PostgreSQL:
+    jdbcUrl = 'jdbc:postgresql://localhost/sqlg2'
+    username = 'sqlg2'
+    password = 'sqlg2'
+    jdbcDriver = 'org.postgresql.Driver'
+    dbClass = 'sqlg2.db.specific.Postgres'
+    driverClasspath = 'postgresql:postgresql:8.4-702.jdbc4'
+    sqlScript = 'schema_pg.sql'
+*/
+    doPreprocess = true
+}

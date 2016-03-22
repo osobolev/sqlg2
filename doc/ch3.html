@@ -1,0 +1,165 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+
+    <title>SQLG runtime library</title>
+
+    <script type="text/javascript" src="shCore.js"></script>
+    <script type="text/javascript" src="shBrushJava.js"></script>
+    <script type="text/javascript" src="shBrushXml.js"></script>
+
+    <link href="shCore.css" rel="stylesheet" type="text/css"/>
+    <link href="shThemeDefault.css" rel="stylesheet" type="text/css"/>
+    <link href="style.css" rel="stylesheet" type="text/css"/>
+
+    <script type="text/javascript">
+        SyntaxHighlighter.all()
+    </script>
+
+</head>
+<body>
+<a href="index.html">[ Back to contents ]</a>
+
+<h2>3. SQLG runtime library</h2>
+<a name="p1"><h3>1. Introduction &ndash; first example continued</h3></a>
+
+<p>
+    After preprocessor has generated files, we can finally use them (see <a href="examples/all_databases/1_example1">example</a>):
+<pre class="brush: java">
+package example1;
+
+import example1.dao.Example1;
+import example1.dao.IExample1;
+import sqlg2.db.*;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.List;
+
+/**
+ * Simple example of SQLG-generated code usage.
+ */
+public class Example1Test {
+
+    public static void insertScott(IExample1 iex1) throws SQLException, RemoteException {
+        // Calling business method
+        iex1.insert(7788, "SCOTT", "ANALYST", null, new Timestamp(System.currentTimeMillis()));
+    }
+
+    public static void print(IExample1 iex1) throws SQLException, RemoteException {
+        // Calling business method
+        List&lt;Example1.EmpRow&gt; list = iex1.selectAll();
+        // Printing result
+        for (Example1.EmpRow emp : list) {
+            System.out.println(emp.empNo() + "\t" + emp.empName());
+        }
+    }
+
+    public static void main(String[] args) throws SQLException, RemoteException {
+        /**
+         * JDBC URL to use
+         */
+        String url;
+        if (args.length &lt;= 0) {
+            System.err.println("No JDBC URL specified");
+            return;
+        } else {
+            url = args[0];
+        }
+        SQLGLogger logger = new SQLGLogger.Simple();
+        // Opening connection
+        Connection connection = SingleConnectionManager.openConnection(
+            "oracle.jdbc.driver.OracleDriver", // JDBC driver class name
+            url,                               // JDBC URL
+            "sqlg2",                           // Database login
+            "sqlg2"                            // Database password
+        );
+        ConnectionManager cman = new SingleConnectionManager(connection);
+        IDBInterface db = new LocalDBInterface(cman, new sqlg2.db.specific.Oracle(), logger);
+        // All the code above was a preparation required to setup database
+        // connection, now real work begins:
+        try {
+            // Getting data access interface
+            IExample1 iex1 = db.getSimpleTransaction().getInterface(IExample1.class);
+            // Running business methods
+            insertScott(iex1);
+            print(iex1);
+        } finally {
+            db.close(); // closing DB connection
+        }
+    }
+}
+</pre>
+
+<a name="p2"><h3>2. Connections and transactions</h3></a>
+<p>
+<img src="hier.gif" alt="" width="519" height="290" border="0">
+
+<p>The root object of SQLG library objects hierarchy is <a href="api/sqlg2/db/IConnectionFactory.html"><code>IConnectionFactory</code></a>.
+    It can be local (<a href="api/sqlg2/db/LocalConnectionFactory.html"><code>LocalConnectionFactory</code></a> obtained
+    by its constructor) or remote (<a href="api/sqlg2/db/client/HttpConnectionFactory.html"><code>HttpConnectionFactory</code></a>).
+    <img src="rem_loc.gif" alt="" width="640" height="400" border="0">
+
+<p>You can create DB connection (<a href="api/sqlg2/db/IDBInterface.html"><code>IDBInterface</code></a>) using its
+    method <a href="api/sqlg2/db/IConnectionFactory.html#openConnection(java.lang.String, java.lang.String)"><code>openConnection()</code></a>,
+    providing user name and password. You can think of <a href="api/sqlg2/db/IConnectionFactory.html"><code>IConnectionFactory</code></a>
+    as of <code>DataSource</code>, and <a href="api/sqlg2/db/IDBInterface.html"><code>IDBInterface</code></a> as of
+    <code>Connection</code>. But, unlike in JDBC, you cannot directly invoke business methods on connection: there is
+    another level of hierarchy &ndash; transaction objects. It was introduced for better control of transactions.
+
+<p>Most of the time you need transactional behavior only on business methods &ndash; whole business method is either committed
+    or rolled back. But in some cases you will need long-running transactions consisting of multiple business method
+    calls. So, there are two types of transactions:
+<ul>
+    <li><a href="api/sqlg2/db/ISimpleTransaction.html"><code>ISimpleTransaction</code></a>
+    <li><a href="api/sqlg2/db/ITransaction.html"><code>ITransaction</code></a>, which extends <a
+        href="api/sqlg2/db/ISimpleTransaction.html"><code>ISimpleTransaction</code></a> and adds usual commit and
+        rollback methods.
+</ul>
+You can obtain data access objects using <a
+    href="api/sqlg2/db/ISimpleTransaction.html#getInterface(java.lang.Class)"><code>getInterface()</code></a> method
+from both of them, but transactional behavior of these objects differ. These data access objects are similar to
+stateless EJB beans (with declarative transactions for <a href="api/sqlg2/db/ISimpleTransaction.html"><code>ISimpleTransaction</code></a>
+and client-demarcated transactions for <a href="api/sqlg2/db/ITransaction.html"><code>ITransaction</code></a>).
+
+<a name="p3"><h3>3. Connection management</h3></a>
+
+<p><a href="api/sqlg2/db/IConnectionFactory.html"><code>IConnectionFactory</code></a> object owns a reference to <a
+    href="api/sqlg2/db/SessionFactory.html"><code>SessionFactory</code></a> object. It is responsible for
+    connection pool allocation and user authentication. When user tries to log in calling 
+    <a href="api/sqlg2/db/IConnectionFactory.html#openConnection(sqlg2.db.IDBInterface, java.lang.String)"><code>openConnection()</code></a>
+    method, 
+    <a href="api/sqlg2/db/SessionFactory.html#login(sqlg2.db.SQLGLogger, java.lang.String, java.lang.String)"><code>SessionFactory.login</code></a>
+    method is called first. It returns newly created connection pool for the user together with session object (can be any serializable
+    object).
+    <p>
+    <img src="login.gif" alt="" width="616" height="190" border="0">
+
+<p>Simple transactions allocate connection from a pool before business method call and release it after the call
+    completes. Non-simple transactions allocate connection at transaction start (when any statement is executed) and
+    release it only when they are committed or rolled back. Since it is possible to start more than one transaction in a
+    single <a href="api/sqlg2/db/IDBInterface.html"><code>IDBInterface</code></a> object, this behavior may lead to
+    deadlock between transactions (see <a href="api/sqlg2/db/ITransaction.html">javadoc</a> and <a
+        href="examples/all_databases/6_connection/2_pooling">example</a>).
+
+<p>SQLG library contains no implementations of <a href="api/sqlg2/db/SessionFactory.html">SessionFactory</a>,
+    but it's easy to write your own implementation, for example, multi-connection pool implementation exploiting some pooling 
+    library (see <a href="examples/all_databases/6_connection/2_pooling">example</a>).
+
+    <a name="p4"><h3>4. Exotic possibilities</h3></a>
+<p>
+<ul>
+    <li>You can run background processes in <a href="api/sqlg2/db/IDBInterface.html"><code>IDBInterface</code></a> with 
+        <code>getAsyncTransaction</code> method. In case of remote connection this process will run on the server side.
+    <li>You can organize something like EJB two-level data access &ndash; session beans facade and entity beans. Facade is
+        marked with <a href="api/sqlg2/SQLG.html"><code>@SQLG</code></a> annotation and &quot;entity&quot; is marked with
+        <a href="api/sqlg2/SQLG.html"><code>@SQLG(inline = true)</code></a> annotation. Preprocessor generates only server-local wrappers
+        for &quot;entity&quot; objects, which can be obtained only from facade objects with the use of
+    <a href="api/sqlg2/GBase.html#getInterface(java.lang.Class)">GBase.getInterface(Class iface)</a> method (see
+    <a href="examples/all_databases/7_layers/">example</a>).
+</ul>
+
+<a href="index.html">[ Back to contents ]</a> <a href="api/index.html">[ To API JavaDoc ]</a>
+</body>
+</html>

@@ -1,0 +1,947 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+
+    <title>Preprocessor</title>
+
+    <script type="text/javascript" src="shCore.js"></script>
+    <script type="text/javascript" src="shBrushJava.js"></script>
+    <script type="text/javascript" src="shBrushXml.js"></script>
+
+    <link href="shCore.css" rel="stylesheet" type="text/css"/>
+    <link href="shThemeDefault.css" rel="stylesheet" type="text/css"/>
+    <link href="style.css" rel="stylesheet" type="text/css"/>
+
+    <script type="text/javascript">
+        SyntaxHighlighter.all()
+    </script>
+
+</head>
+<body>
+<a href="index.html">[ Back to contents ]</a>
+
+<h2>2. Preprocessor</h2>
+
+<a name="p1"><h3>1. Introduction &ndash; first example</h3></a>
+
+<p>Let us consider a simple example &ndash; we need to manipulate following database table <code>EMP</code>:
+<table cellpadding="2" cellspacing="0">
+    <tbody>
+    <tr>
+        <th>Column name</th>
+        <th>Column type</th>
+        <th>Nullable?</th>
+    </tr>
+    <tr>
+        <td>EMP_NO</td>
+        <td>NUMERIC(4)</td>
+        <td>NOT NULL</td>
+    </tr>
+    <tr>
+        <td>EMP_NAME</td>
+        <td>VARCHAR(10)</td>
+        <td>NOT NULL</td>
+    </tr>
+    <tr>
+        <td>JOB</td>
+        <td>VARCHAR(9)</td>
+        <td>NULL</td>
+    </tr>
+    <tr>
+        <td>MGR</td>
+        <td>NUMERIC(4)</td>
+        <td>NULL</td>
+    </tr>
+    <tr>
+        <td>HIRE_DATE</td>
+        <td>TIMESTAMP</td>
+        <td>NULL</td>
+    </tr>
+    </tbody>
+</table>
+<p>Here is simple data access object which allows to perform SELECT and INSERT operations (see
+<a href="examples/all_databases/1_example1">example</a>):
+<pre class="brush: java">
+package example1.dao;
+
+import sqlg2.*;
+
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.List;
+
+@SQLG
+public final class Example1 extends GBase {
+
+    public Example1(LocalWrapperBase lwb) {
+        super(lwb);
+    }
+
+    @RowType
+    public abstract static class EmpRow {
+    }
+
+    @Business
+    public List&lt;EmpRow&gt; selectAll() throws SQLException {
+        /**
+         * SELECT emp_no, emp_name, job, mgr, hire_date
+         *   FROM emp
+         * ORDER BY emp_no
+         */
+        @Prepare PreparedStatement stmt = null;
+        return multiRowQuery(stmt, EmpRow.class);
+    }
+
+    @Business
+    public void insert(int empNo, String empName, String job,
+                       Integer manager, Timestamp hireDate) throws SQLException {
+        /**
+         * INSERT INTO emp
+         *   (emp_no, emp_name, job, mgr, hire_date)
+         *   VALUES
+         *   (:empNo, :empName, :job, :manager, :hireDate)
+         */
+        @Prepare PreparedStatement stmt = null;
+        executeUpdate(stmt);
+     }
+}
+</pre>
+
+<p>Class piecewise description follows.
+
+<p>DAO class declaration looks like this:
+<pre class="brush: java; first-line: 10">
+@SQLG
+public final class Example1 extends GBase {
+</pre>
+<a href="api/sqlg2/SQLG.html"><code>@SQLG</code></a> annotation indicates that this class should be preprocessed;
+preprocessed class should extend <a href="api/sqlg2/GBase.html"><code>sqlg2.GBase</code></a>.
+
+<p>Here is the single constructor:
+<pre class="brush: java; first-line: 13">
+    public Example1(LocalWrapperBase lwb) {
+        super(lwb);
+    }
+</pre>
+Usually you shouldn't invoke it manually, it is called by runtime system.
+
+<p>Now comes one of the main features of SQLG &ndash; row type class declaration:
+<pre class="brush: java; first-line: 17">
+    @RowType
+    public abstract static class EmpRow {
+    }
+</pre>
+<a href="api/sqlg2/RowType.html"><code>@RowType</code></a> annotation indicates that the class is a row type class; such
+class should be public, static and abstract. Currently class is empty, its content is created by preprocessor &ndash; it
+inserts data access methods, corresponding to the SELECT statement in the business method following class declaration.
+
+<p>And here is the business method itself:
+<pre class="brush: java; first-line: 21">
+    @Business
+    public List&lt;EmpRow&gt; selectAll() throws SQLException {
+</pre>
+It expresses the idea of SELECT statement quite naturally.
+
+<p>This piece of code shows how you can write pretty SQL statements in Java using SQLG:
+<pre class="brush: java; first-line: 23">
+        /**
+         * SELECT emp_no, emp_name, job, mgr, hire_date
+         *   FROM emp
+         * ORDER BY emp_no
+         */
+        @Prepare PreparedStatement stmt = null;
+        return multiRowQuery(stmt, EmpRow.class);
+</pre>
+<a href="api/sqlg2/Prepare.html"><code>@Prepare</code></a> annotation is used to mark variables of <code>java.sql.PreparedStatement</code>
+class, which are assigned with newly created statement corresponding to SQL query in preceding comments with parameters
+set to referenced variables (see <a href="#p2">later</a>). Then the method from
+<a href="api/sqlg2/GBase.html"><code>GBase</code></a> class is used to perform query. This method should be used to
+allow preprocessor to find out the row type of result set.
+
+<p>Here is the result of preprocessor work (lines modified or inserted by preprocessor are highlighted):
+<pre class="brush: java; highlight: [19, 20, 21, 22, 23, 24, 34, 47]">
+package example1.dao;
+
+import sqlg2.*;
+
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.util.List;
+
+@SQLG
+public final class Example1 extends GBase {
+
+    public Example1(LocalWrapperBase lwb) {
+        super(lwb);
+    }
+
+    @RowType
+    public abstract static class EmpRow {
+
+        public abstract int empNo();
+        public abstract String empName();
+        public abstract String job();
+        public abstract Integer mgr();
+        public abstract java.util.Date hireDate();
+    }
+
+    @Business
+    public List&lt;EmpRow&gt; selectAll() throws SQLException {
+        /**
+         * SELECT emp_no, emp_name, job, mgr, hire_date
+         *   FROM emp
+         * ORDER BY emp_no
+         */
+        @Prepare PreparedStatement stmt = prepareStatement("SELECT emp_no, emp_name, job, mgr, hire_date FROM emp ORDER BY emp_no");
+        return multiRowQuery(stmt, EmpRow.class);
+    }
+
+    @Business
+    public void insert(int empNo, String empName, String job,
+                       Integer manager, Timestamp hireDate) throws SQLException {
+        /**
+         * INSERT INTO emp
+         *   (emp_no, emp_name, job, mgr, hire_date)
+         *   VALUES
+         *   (:empNo, :empName, :job, :manager, :hireDate)
+         */
+        @Prepare PreparedStatement stmt = prepareStatement("INSERT INTO emp (emp_no, emp_name, job, mgr, hire_date) VALUES (?, ?, ?, ?, ?)", inP(empNo, Integer.class), inP(empName, String.class), inP(job, String.class), inP(manager, Integer.class), inP(hireDate, java.sql.Timestamp.class));
+        executeUpdate(stmt);
+    }
+}
+</pre>
+
+<p>You can introduce errors into SQL statements and check what preprocessor says about them &ndash; in most cases it won't let
+you run invalid SQL.
+
+<p>But that's not all &ndash; there are also generated wrappers; see <a href="#p2">next section</a> and <a href="ch3.html#p1">example
+of their usage</a>
+
+<a name="p2"><h3>2. How does it work</h3></a>
+Preprocessor works in two phases. In the first one it generates code for variables annotated with <a href="api/sqlg2/Prepare.html"><code>@Prepare</code></a>,
+<a href="api/sqlg2/PrepareKey.html"><code>@PrepareKey</code></a>, <a href="api/sqlg2/Query.html"><code>@Query</code></a>, <a href="api/sqlg2/Sql.html"><code>@Sql</code></a>
+or <a href="api/sqlg2/Call.html"><code>@Call</code></a> annotations so that their values are taken from preceding Javadoc comments
+and query parameters are extracted and replaced with question marks. In our example: business methods before first phase:
+<pre class="brush: java; first-line: 21">
+    @Business
+    public List&lt;EmpRow&gt; selectAll() throws SQLException {
+        /**
+         * SELECT emp_no, emp_name, job, mgr, hire_date
+         *   FROM emp
+         * ORDER BY emp_no
+         */
+        @Prepare PreparedStatement stmt = null;
+        return multiRowQuery(stmt, EmpRow.class);
+    }
+
+    @Business
+    public void insert(int empNo, String empName, String job,
+                       Integer manager, Timestamp hireDate) throws SQLException {
+        /**
+         * INSERT INTO emp
+         *   (emp_no, emp_name, job, mgr, hire_date)
+         *   VALUES
+         *   (:empNo, :empName, :job, :manager, :hireDate)
+         */
+        @Prepare PreparedStatement stmt = null;
+        executeUpdate(stmt);
+     }
+</pre>
+After:
+<pre class="brush: java; first-line: 21; highlight: [28, 41]">
+    @Business
+    public List&lt;EmpRow&gt; selectAll() throws SQLException {
+        /**
+         * SELECT emp_no, emp_name, job, mgr, hire_date
+         *   FROM emp
+         * ORDER BY emp_no
+         */
+        @Prepare PreparedStatement stmt = prepareStatement("SELECT emp_no, emp_name, job, mgr, hire_date\nFROM emp\nORDER BY emp_no");
+        return multiRowQuery(stmt, EmpRow.class);
+    }
+
+    @Business
+    public void insert(int empNo, String empName, String job,
+                       Integer manager, Timestamp hireDate) throws SQLException {
+        /**
+         * INSERT INTO emp
+         *   (emp_no, emp_name, job, mgr, hire_date)
+         *   VALUES
+         *   (:empNo, :empName, :job, :manager, :hireDate)
+         */
+        @Prepare PreparedStatement stmt = prepareStatement("INSERT INTO emp\n(emp_no, emp_name, job, mgr, hire_date)\nVALUES\n(?, ?, ?, ?, ?)", inP(empNo, "Example1.insert.empNo"), inP(empName, "Example1.insert.empName"), inP(job, "Example1.insert.job"), inP(manager, "Example1.insert.manager"), inP(hireDate, "Example1.insert.hireDate"));
+        executeUpdate(stmt);
+     }
+</pre>
+As you see, preprocessor inserted SQL text (with question marks) and query parameters (along with their names which are used by
+preprocessor for identification). These changed files are generated in temporary directory, so usually you don't see them.
+
+<p>After that, the second phase is started. Now preprocessor compiles code from the first phase and actually runs it. It runs
+business methods (the methods marked with <a href="api/sqlg2/Business.html"><code>@Business</code></a> annotation) to determine two things:
+<ol>
+    <li>Query parameter types</li>
+    <li>Row type class field names and types</li>
+</ol>
+To call a business method preprocessor needs to supply some parameters. These parameters are generated by
+<a href="api/sqlg2/Mapper.html#getTestObject(java.lang.Class, sqlg2.checker.SqlChecker)"><code>Mapper.getTestObject</code></a>
+method, which returns some simple (but non-null) values for each type: 1 for <code>int</code>, "1" for <code>String</code>, and so on.
+<p>Now that we have runtime type information preprocessor uses it:
+<ol>
+    <li><code>inP</code> method determines type of used query parameters</li>
+    <li><code>multiRowQuery</code> method can perform query, examine result set metadata to extract field
+        descriptions and associate these fields with used row type class
+    </li>
+</ol>
+
+<p>Since business methods code is run at preprocess time, it is important not to use JDBC methods which alter database state, such as
+<code>PreparedStatement.executeUpdate()</code>. You should use <a href="api/sqlg2/GBase.html#executeUpdate(java.sql.PreparedStatement)"><code>executeUpdate(PreparedStatement)</code></a> instead, because
+it can distinguish when it is run at preprocess time or application run time.
+
+<p>So, after getting all required information, preprocessor once again generates code for query parameters and also for
+row type classes. Since row type classes are abstract, their implementation is generated as well.
+
+<a name="p3"><h3>3. Use cases</h3></a>
+Let us consider different use cases:<br>
+<a href="#case1">SELECT statement with static SQL</a><br>
+<a href="#case2">SELECT statement with dynamic SQL with fixed column and parameter list</a><br>
+<a href="#case3">SELECT statement with dynamic SQL with fixed column list and varying parameter list</a><br>
+<a href="#case4">INSERT/UPDATE/DELETE statements</a><br>
+<a href="#case5">Stored procedures and PL/SQL blocks</a><br>
+<a href="#case6">Free-form statements</a>
+
+<a name="case2"><h4>3.1. SELECT statement with static SQL</h4></a>
+<p>This case applies if your SQL query is fully known at compile time. Preferred way to select rows is to declare row type
+class and use <a href="api/sqlg2/Prepare.html"><code>Prepare</code></a>
+annotation to let preprocessor generate all required code to prepare statement for execution; then you can call statement
+execution method matching your needs:
+<pre class="brush: java">
+@RowType
+public abstract static class EmpRow {
+}
+
+@Business
+public List&lt;EmpRow&gt; selectByJob(String job) throws SQLException {
+    /**
+     * SELECT emp_no, emp_name, job, mgr, hire_date
+     *   FROM emp
+     *  WHERE job = :job
+     * ORDER BY emp_no
+     */
+    @Prepare PreparedStatement stmt = null;
+    return multiRowQuery(stmt, EmpRow.class);
+}
+</pre>
+You can call <code>columnOf...</code>, <code>singleRowQuery...</code>
+or <code>optionalRowQuery...</code> query execution methods if you need.
+<p>
+There are longer alternative versions of this code, you can use them if
+you wish. First, you can set query parameters manually. You can use raw JDBC calls,
+<a href="api/sqlg2/GBase.html#setParameter(java.sql.PreparedStatement,int,java.lang.Object,java.lang.Class)"><code>GBase.setParameter</code></a>
+or
+<a href="api/sqlg2/GBase.html#setParameters(java.sql.PreparedStatement, sqlg2.Parameter...)"><code>GBase.setParameters</code></a>
+methods:
+<pre class="brush: java">
+@Business
+public List&lt;EmpRow&gt; selectByJob(String job) throws SQLException {
+    /**
+     * SELECT emp_no, emp_name, job, mgr, hire_date
+     *   FROM emp
+     *  WHERE job = ?
+     * ORDER BY emp_no
+     */
+    @Sql String sql = null;
+    PreparedStatement stmt = prepareStatement(sql);
+    // Set query parameters manually by one of these calls:
+    // 1. JDBC call
+    stmt.setString(1, job);
+    // 2. setParameter for each query parameter
+    setParameter(stmt, 1, job, String.class);
+    // 3. setParameters for all query parameters
+    setParameters(stmt, in(job, String.class));
+    return multiRowQuery(stmt, EmpRow.class);
+}
+</pre>
+<a href="api/sqlg2/Sql.html"><code>@Sql</code></a> annotation differs from <a href="api/sqlg2/Prepare.html"><code>@Prepare</code></a>
+by its generated code: it captures only query text, so it can only be used with <code>String</code> variables.
+<p>
+Second, you can abandon use of annotations entirely and use plain Java strings:
+<pre class="brush: java">
+@Business
+public List&lt;EmpRow&gt; selectByJob(String job) throws SQLException {
+    String sql = "SELECT emp_no, emp_name, job, mgr, hire_date" +
+                 "  FROM emp" +
+                 " WHERE job = ?" +
+                 " ORDER BY emp_no";
+    PreparedStatement stmt = prepareStatement(sql);
+    // Set query parameters manually by one of these calls:
+    // 1. JDBC call
+    stmt.setString(1, job);
+    // 2. setParameter for each query parameter
+    setParameter(stmt, 1, job, String.class);
+    // 3. setParameters for all query parameters
+    setParameters(stmt, in(job, String.class));
+    return multiRowQuery(stmt, EmpRow.class);
+}
+</pre>
+
+<a name="case2"><h4>3.2. SELECT statement with dynamic SQL with fixed column and parameter list</h4></a>
+<p>Assume that you want dynamically change selection order in an otherwise static SQL statement. Let's pass order as a parameter:
+<pre class="brush: java">
+@RowType
+public abstract static class EmpRow {
+}
+
+@Business
+public List&lt;EmpRow&gt; selectByJob(String job, String order) throws SQLException {
+    /**
+     * SELECT emp_no, emp_name, job, mgr, hire_date
+     *   FROM emp
+     *  WHERE job = :job
+     * ORDER BY &order
+     */
+    @Prepare PreparedStatement stmt = null;
+    return multiRowQuery(stmt, EmpRow.class);
+}
+</pre>
+Note the use of <code>&order</code>: it is a literal substitution. Unlike <code>:parameters</code>, <code>&order</code>
+is not set by <core>PreparedStatement.setXXX</core> but directly concatenated with query text. Beware of SQL
+injections when using raw string concatenation!
+<p>
+If you remember previous part, <code>selectByJob</code> method is called at preprocess time with some fake parameter
+values (in our example <code>job</code> and <code>order</code> both are equal to "1"). So this works only because
+<code>ORDER BY 1</code> is valid SQL. If your query is more complex than that, you can supply special values for
+preprocessor (i.e. when <a href="api/sqlg2/GBase.html#isTesting()"><code>isTesting()</code></a> returns <code>true</code>):
+<pre class="brush: java">
+@Business
+public List&lt;EmpRow&gt; selectByJob(String job, String order) throws SQLException {
+    if (isTesting()) {
+        // When preprocessing, use this value for order:
+        order = "emp_no";
+    }
+    /**
+     * SELECT emp_no, emp_name, job, mgr, hire_date
+     *   FROM emp
+     *  WHERE job = :job
+     * ORDER BY &order
+     */
+    @Prepare PreparedStatement stmt = null;
+    return multiRowQuery(stmt, EmpRow.class);
+}
+</pre>
+Same options as above (different execution methods, manual parameter setting, use of plain strings) can be applied here too.
+
+<a name="case3"><h4>3.3. SELECT statement with dynamic SQL with fixed column list and varying parameter list</h4></a>
+<p>Common scenario is using different queries depending on parameter value, for example for <code>null</code> values
+you should use <code>IS NULL</code> condition and not comparison with <code>NULL</code>.
+Preferred way to do this using <a href="api/sqlg2/db/QueryBuilder.html"><code>QueryBuilder</code></a>:
+<pre class="brush: java">
+@RowType
+public abstract static class EmpRow {
+}
+
+@Business
+public List&lt;EmpRow&gt; selectByManager(Integer manager) throws SQLException {
+    QueryBuilder where = new QueryBuilder();
+    if (manager == null) {
+        where.append("mgr IS NULL");
+    } else {
+        /** mgr = :manager */
+        @Query QueryPiece piece = null;
+        where.append(piece);
+    }
+    /**
+     * SELECT emp_no, emp_name, job, mgr, hire_date
+     *   FROM emp
+     *  WHERE &where
+     * ORDER BY emp_no
+     */
+    @Prepare PreparedStatement stmt = null;
+    return multiRowQuery(stmt, EmpRow.class);
+}
+</pre>
+Here we first build <code>WHERE</code> condition depending on <code>manager</code> parameter value. When <code>manager</code>
+is not null we create query piece using <a href="api/sqlg2/Query.html"><code>Query</code></a> annotation.
+Since <code>&</code>-substitution works not only for strings, but also for
+<a href="api/sqlg2/db/QueryBuilder.html"><code>QueryBuilder</code></a> and <a href="api/sqlg2/db/QueryPiece.html"><code>QueryPiece</code></a>
+objects, we can use it in the query text.
+<p>
+If a query piece is rather simple, it can be easier to create it manually without annotations:
+<pre class="brush: java">
+QueryPiece piece = createQueryPiece("mgr = ?", in(manager, Integer.class));
+</pre>
+As in the code above, you can do everything manually:
+<pre class="brush: java">
+@Business
+public List&lt;EmpRow&gt; selectByManager(Integer manager) throws SQLException {
+    StringBuilder buf = new StringBuilder();
+    buf.append(
+        "SELECT emp_no, emp_name, job, mgr, hire_date" +
+        "  FROM emp" +
+        " WHERE "
+    );
+    if (manager == null) {
+        buf.append("mgr IS NULL");
+    } else {
+        buf.append("mgr = ?");
+    }
+    buf.append(" ORDER BY emp_no");
+    PreparedStatement stmt = prepareStatement(buf.toString());
+    if (manager != null) {
+        stmt.setInt(1, manager);
+    }
+    return multiRowQuery(stmt, EmpRow.class);
+}
+</pre>
+
+<a name="case4"><h4>3.4. INSERT/UPDATE/DELETE statements</h4></a>
+<p>This case is similar to the first three cases, but you should
+execute statement with <a href="api/sqlg2/GBase.html#executeUpdate(java.sql.PreparedStatement)"><code>executeUpdate</code></a>
+method.
+<p>If your INSERT or UPDATE statement auto-generates some columns (for example, auto-generates primary key), you can use
+<a href="api/sqlg2/PrepareKey.html"><code>@PrepareKey</code></a> annotation to retrieve them:
+<pre class="brush: java">
+@Business
+public int createEmp(String empName) throws SQLException {
+    /**
+     * INSERT INTO emp
+     *   (emp_name)
+     *   VALUES
+     *   (:empName)
+     */
+    @PrepareKey("emp_no") PreparedStatement stmt = null;
+    executeUpdate(stmt);
+    return getGeneratedKeys(stmt)[0].intValue();
+}
+</pre>
+<a href="api/sqlg2/PrepareKey.html"><code>@PrepareKey</code></a> parameter is a comma-separated list of auto-generated columns
+which values we want to retrieve. You can use <a href="api/sqlg2/GBase.html#ALL_KEYS"><code>ALL_KEYS</code></a> value
+to specify that you need all auto-generated columns but this option is not supported in some JDBC drivers.
+<p><a href="api/sqlg2/GBase.html#getGeneratedKeys(java.sql.PreparedStatement)"><code>getGeneratedKeys</code></a>
+method returns an array of generated columns' values.
+
+<a name="case5"><h4>3.5. Stored procedures and PL/SQL blocks</h4></a>
+<p>Preferred way to execute a stored procedure is to use <a href="api/sqlg2/GBase.html#callStoredProc(java.lang.String, sqlg2.Parameter...)"><code>callStoredProc</code></a>
+method:
+<pre class="brush: java">
+@Business
+public int createEmp(String empName) throws SQLException {
+    int[] empNo = new int[1];
+    callStoredProc("EmpPackage.CreateEmp", in(empName, String.class), out(empNo));
+    return empNo[0];
+}
+</pre>
+Preprocessor checks correspondence between formal and actual parameter lists for such calls.
+<p>
+Preferred way to execute a PL/SQL block is to use <a href="api/sqlg2/Call.html"><code>@Call</code></a>
+annotation to let preprocessor generate all required code to execute statement:
+<pre class="brush: java">
+@Business
+public int createEmp(String empName) throws SQLException {
+    int[] empNo = new int[1];
+    /**
+     * BEGIN
+     *   INSERT INTO EMP (emp_no, emp_name)
+     *   VALUES (emp_seq.NEXTVAL, :empName)
+     *   RETURNING emp_no INTO :>empNo;
+     * END;
+     */
+    @Call Object[] ret = null;
+    return empNo[0];
+}
+</pre>
+Note the use of <code>:>empNo</code> to specify <code>empNo</code> as OUT parameter.
+
+<p>Other possible variants are:
+<pre class="brush: java">
+@Business
+public int createEmp(String empName) throws SQLException {
+    /**
+     * BEGIN
+     *   INSERT INTO emp (emp_no, emp_name)
+     *   VALUES (emp_seq.NEXTVAL, ?)
+     *   RETURNING emp_no INTO ?;
+     * END;
+     */
+    @Sql String sql = null;
+    Object[] ret = callStoredBlock(sql, in(empName, String.class), outJdbc(Types.INTEGER));
+    return (Integer) ret[0];
+}
+</pre>
+or (not using any annotations):
+<pre class="brush: java">
+@Business
+public int createEmp(String empName) throws SQLException {
+    String sql =
+        "BEGIN" +
+        "  INSERT INTO emp (emp_no, emp_name)" +
+        "  VALUES (emp_seq.NEXTVAL, ?)" +
+        "  RETURNING emp_no INTO ?;" +
+        "END;";
+    CallableStatement cs = prepareCall(sql);
+    cs.setString(1, empName);
+    cs.registerOutParameter(2, Types.INTEGER);
+    executeCall(cs);
+    return getInt(cs, 2);
+}
+</pre>
+
+<a name="case6"><h4>3.6. Free-form statements</h4></a>
+<p>If you need some capabilities not directly supported by SQLG, you can switch it off in the business method and use
+pure JDBC. For example:
+<pre class="brush: java">
+@Business
+public void doSomething() throws SQLException {
+    if (isTesting())
+        return; // no need for preprocessor services
+    // now we can do what we want - this code will
+    // be run only at runtime, not preprocess time
+    PreparedStatement ps = prepareStatement(...);
+    try (ResultSet rs = ps.executeQuery()) {
+        ...
+    }
+    ...
+    CallableStatement cs = prepareCall(...);
+    ...
+    Statement st = createStatement(...);
+    ...
+    executeSql("DROP TABLE BOBBY");
+}
+</pre>
+Use <a href="api/sqlg2/GBase.html#isTesting()">isTesting()</a> method to check if a method is invoked by preprocessor (it returns
+<code>false</code> at application run time).
+<p>
+You still can use <a href="api/sqlg2/Sql.html"><code>@Sql</code></a> annotation, since it affects only first preprocess
+phase, but not other services &ndash; row type generation and statement code generation. You can also use
+<a href="api/sqlg2/BusinessNoSql.html"><code>@BusinessNoSql</code></a> annotation on business methods which do not want
+to be called by preprocessor.
+
+<a name="p4"><h3>4. ANT task for SQLG</h3></a>
+
+Class name of the task is <code>sqlg2.Preprocess</code>. Task classpath should contain full version of SQLG library.
+<p>
+ANT task attributes:
+<table cellpadding="3" cellspacing="0">
+    <colgroup>
+        <col align="left">
+        <col align="left">
+        <col align="center">
+    </colgroup>
+    <tbody>
+    <tr>
+        <th>Attribute</th>
+        <th>Description</th>
+        <th>Required</th>
+    </tr>
+    <tr>
+        <td>srcroot</td>
+        <td>Source files root directory. Package of class is
+            determined relative to the source root.
+        </td>
+        <td>Yes</td>
+    </tr>
+    <tr>
+        <td>classpath</td>
+        <td>Classpath to use when running
+            preprocessor. Used in the second phase during compilation. Must include
+            SQLG library itself (full version, not runtime), JDBC driver library,
+            and other libraries that are referenced by processed classes.
+        </td>
+        <td>Yes</td>
+    </tr>
+    <tr>
+        <td>url</td>
+        <td>JDBC URL to use for DB connection.</td>
+        <td>Yes</td>
+    </tr>
+    <tr>
+        <td>user</td>
+        <td>User for DB connection.</td>
+        <td>Yes</td>
+    </tr>
+    <tr>
+        <td>password</td>
+        <td>User's password for DB connection.</td>
+        <td>Yes</td>
+    </tr>
+    <tr>
+        <td>driverClass</td>
+        <td>JDBC driver class name.</td>
+        <td>No, defaults to <code>oracle.jdbc.driver.OracleDriver</code>.</td>
+    </tr>
+    <tr>
+        <td>dbClass</td>
+        <td>Name of the class implementing <a href="api/sqlg2/db/DBSpecific.html"><code>sqlg2.db.DBSpecific</code></a>
+            interface.
+        </td>
+        <td>No, defaults to <a href="api/sqlg2/db/specific/Oracle.html"><code>sqlg2.db.specific.Oracle</code></a>.</td>
+    </tr>
+    <tr>
+        <td>encoding</td>
+        <td>Source file encoding.
+        </td>
+        <td>No, defaults to <code>${file.encoding}</code></td>
+    </tr>
+    <tr>
+        <td>implpack</td>
+        <td>Subpackage name to put implementation class.</td>
+        <td>No, defaults to <code>wrapper</code>.</td>
+    </tr>
+    <tr>
+        <td>wrappack</td>
+        <td>Subpackage name to put wrapper classes.</td>
+        <td>No, defaults to <code>wrapper</code>.</td>
+    </tr>
+    <tr>
+        <td>mapperClass</td>
+        <td>Name of the class implementing <a href="api/sqlg2/Mapper.html"><code>sqlg2.Mapper</code></a>
+            interface.
+        </td>
+        <td>No, defaults to <code>sqlg2.MapperImpl</code>.</td>
+    </tr>
+    <tr>
+        <td>runtimeMapperClass</td>
+        <td>Name of the class implementing <a href="api/sqlg2/db/RuntimeMapper.html"><code>sqlg2.db.RuntimeMapper</code></a>
+            interface.
+        </td>
+        <td>No, defaults to <code>sqlg2.db.RuntimeMapperImpl</code>.</td>
+    </tr>
+    <tr>
+        <td>gwt</td>
+        <td>Whether to create default constructors for upper-level row type classes (so they can be GWT-serializable).</td>
+        <td>No, defaults to <code>true</code>.</td>
+    </tr>
+    <tr>
+        <td>tabSize</td>
+        <td>Tab size to use in generated sources (negative for tab character).</td>
+        <td>No, defaults to 4.</td>
+    </tr>
+    <tr>
+        <td>warn</td>
+        <td>Specify <code>warn</code> to check for row type class inconsistencies, <code>error</code> to treat these
+            inconsistencies as errors, and <code>none</code> to skip these checks.
+        </td>
+        <td>No, defaults to <code>warn</code>.</td>
+    </tr>
+    <tr>
+        <td>log</td>
+        <td>Whether to print out currently preprocessing class and method.
+        </td>
+        <td>No, defaults to <code>false</code>.</td>
+    </tr>
+    <tr>
+        <td>force</td>
+        <td>Whether to force generation of files;
+            when false, preprocessor checks modification
+            time of processed file against modification time of its generated
+            implementation file, and if main file was not modified, no generation
+            is performed.
+        </td>
+        <td>No, defaults to <code>false</code>.</td>
+    </tr>
+    <tr>
+        <td>tmpDir</td>
+        <td>Temporary directory location.
+        </td>
+        <td>No, defaults to <code>${java.io.tmpdir}</code>.</td>
+    </tr>
+    <tr>
+        <td>cleanup</td>
+        <td>Whether to delete all temporary files when done.
+        </td>
+        <td>No, defaults to <code>true</code>.</td>
+    </tr>
+    <tr>
+        <td>wrapperClass</td>
+        <td>Name of the class implementing <code>sqlg2.WrapperGeneratorFactory</code>
+            interface.
+        </td>
+        <td>No, defaults to <code>sqlg2.DefaultWrapperGeneratorFactory</code>.</td>
+    </tr>
+    </tbody>
+</table>
+
+<p>Task allows nested <em>fileset</em>s to specify
+    which files to preprocess.
+
+<p>Example:
+<pre class="brush: xml">
+&lt;target name="preprocess"&gt;
+    &lt;taskdef name="sqlg" classname="sqlg2.Preprocess"
+             classpath="${sqlg.jar};${jdbc.lib}"/&gt;
+    &lt;sqlg classpath="${sqlg.jar};${jdbc.lib}"
+          url="${jdbc.url}" driverclass="${jdbc.driver}"
+          user="sqlg" password="sqlg"
+          srcroot="${src.dir}"&gt;
+        &lt;fileset dir="${src.dir}"&gt;
+            &lt;include name="example1/dao/Example1.java"/&gt;
+        &lt;/fileset&gt;
+    &lt;/sqlg&gt;
+&lt;/target&gt;
+</pre>
+
+<p>You can use it from Maven with <code>maven-antrun-plugin</code>:
+<pre class="brush: xml">
+&lt;plugin&gt;
+    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+    &lt;artifactId&gt;maven-antrun-plugin&lt;/artifactId&gt;
+    &lt;executions&gt;
+        &lt;execution&gt;
+            &lt;id&gt;compile&lt;/id&gt;
+            &lt;phase&gt;generate-sources&lt;/phase&gt;
+            &lt;configuration&gt;
+                &lt;tasks&gt;
+                    &lt;property name="compile_classpath" refid="maven.compile.classpath"/&gt;
+                    &lt;property name="runtime_classpath" refid="maven.runtime.classpath"/&gt;
+                    &lt;property name="src.dir" location="src/main/java"/&gt;
+
+                    &lt;taskdef name="sqlg" classname="sqlg2.Preprocess" classpath="${compile_classpath}"/&gt;
+                    &lt;sqlg classpath="${compile_classpath}"
+                          url="${jdbc.url}" driverclass="${jdbc.driver}"
+                          user="${jdbc.user}" password="${jdbc.pass}"
+                          srcroot="${src.dir}" encoding="${project.build.sourceEncoding}"&gt;
+                        &lt;fileset dir="${src.dir}"&gt;
+                            &lt;include name="example1/dao/Example1.java"/&gt;
+                        &lt;/fileset&gt;
+                    &lt;/sqlg&gt;
+                &lt;/tasks&gt;
+            &lt;/configuration&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;run&lt;/goal&gt;
+            &lt;/goals&gt;
+        &lt;/execution&gt;
+    &lt;/executions&gt;
+&lt;/plugin&gt;
+</pre>
+
+<p>... or Gradle:
+<pre class="brush: java">
+task preprocess << {
+    ant.taskdef(name: 'sqlg', classname: 'sqlg2.Preprocess', classpath: configurations.runtime.asPath)
+    ant.sqlg(classpath: configurations.runtime.asPath,
+             url: jdbcUrl, driverclass: jdbcDriver, dbclass: dbClass,
+             user: username, password: password,
+             srcroot: 'src', encoding: compileJava.options.encoding) {
+        fileset(dir: 'src') {
+            include(name: 'example1/dao/Example1.java')
+        }
+    }
+}
+compileJava.dependsOn(preprocess)
+</pre>
+
+<a name="p5"><h3>5. Details of the second preprocessor phase</h3></a>
+
+<h4>5.1. Row type class generation</h4>
+So, the preprocessor gets the query and is told to execute it using one of the appropriate methods:
+<ul>
+<li><a href="api/sqlg2/GBase.html#multiRowQuery(java.sql.PreparedStatement, java.lang.Class)"><code>multiRowQuery</code></a>
+<li><a href="api/sqlg2/GBase.html#singleRowQuery(java.sql.PreparedStatement, java.lang.Class)"><code>singleRowQuery</code></a>
+<li><a href="api/sqlg2/GBase.html#optionalRowQuery(java.sql.PreparedStatement, java.lang.Class)"><code>optionalRowQuery</code></a>
+</ul>
+Now preprocessor actually executes the query, gets the <code>ResultSet</code> and its metadata. For each field in the result set it generates
+a field for row type class supplied as a parameter to the query execution method:
+<ul>
+<li>Java field name is generated by SQL field name using following rule: all underscores are translated to case change.
+    For example, <code>EMP_NO</code> is translated to <code>empNo</code>, <code>HIRE_DATE</code> to <code>hireDate</code>.
+    So if you're only going to design your DB schema it is good idea to have underscores in column names to get well-readable names.
+    If you use functions (like in <code>"SELECT COUNT(*) FROM emp"</code>) without column aliases in your queries then generated
+    field names will be incorrect! You will have to delete these invalid fields and re-run preprocessor with correctly
+    given aliases: <code>"SELECT COUNT(*) AS emp_Count FROM emp"</code>
+    <li>Java field type is determined by SQL field type.
+</ul>
+All actual conversion from SQL to Java is made by
+<a href="api/sqlg2/Mapper.html#getFields(java.sql.ResultSetMetaData, java.lang.String, java.lang.String, boolean, sqlg2.checker.SqlChecker)"><code>Mapper.getFields</code></a>
+method, which you can override if you really want using <code>mapperClass</code> <a href="#p4">task attribute</a>.
+
+<p>The annotation used as a row type class marker determines whether setters are generated:
+<ul>
+    <li><a href="api/sqlg2/RowType.html"><code>@RowType</code></a> generates only getters
+    <li><a href="api/sqlg2/EditableRowType.html"><code>@EditableRowType</code></a> generates both getters and setters.
+    The setters do not affect database state, they just change in-memory fields.
+</ul>
+
+<p>Details of the actual row type class code generation differs for these cases:
+<ul>
+<li>Row type class is a nested class. It can be <code>abstract static</code> nested class or nested <code>interface</code>.
+    Since row type class/interface is abstract, its implementation is generated separately and is loaded by reflection at runtime.
+    Consider we have preprocessed the file <code>TestDAO.java</code> and <code>implpack</code> <a href="#p4">task attribute</a> was set to <code>"impl"</code>.
+    Then we'll have its nested row type classes implementations generated in the class <code>TestDAOImpl.java</code> in
+    the <code>impl</code> subpackage relative to the original file.
+<li>Row type class is an upper-level class. It cannot be abstract, it should be usual class (may be <code>final</code>).
+    The fields and getters (and possibly setters) are generated directly in the class body. <code>TestDAOImpl.java</code>
+    file only contains factory method for these classes. The presence of a default constructor is determined by <code>gwt</code>
+    <a href="#p4">attribute of the task</a>: GWT-seriailizable classes must have default constructor so in <code>gwt=true</code> mode it
+    is generated. If row type class has only getters and has no default constructor its fields are generated as <code>final</code>.
+</ul>
+In both of these cases row type class can extend other classes or implement interfaces. Only the class body between curly
+braces is generated (and overwritten) by preprocessor.
+
+<h4>5.2. Wrapper generation</h4>
+Since SQLG controls external resources such as open SQL statements and result sets it needs to wrap calls to business
+methods to <code>try/finally</code> blocks to release all allocated resources. This is done by special wrapper classes
+generated by preprocessor and instantiated at runtime through reflection.
+
+<p>For example, for input file <code>TestDAO.java</code> and <code>wrappack</code> <a href="#p4">task attribute</a> set to <code>"wrapper"</code>
+there will be following files generated:
+<ul>
+<li><code>ITestDAO.java</code> &ndash; data access interface (in the same package as the input file). All business method
+    calls should go through this interface (see <a href="ch3.html">next chapter</a> on how to obtain data access interface instances);
+<li><code>LWTestDAO.java</code> &ndash; wrapper class (in <code>wrapper</code> subpackage). You don't interact with it
+    directly, runtime system does it for you. This class implements data access interface <code>ITestDAO</code>.
+</ul>
+Usually it is convenient to set values for <code>implpack</code> and <code>wrappack</code> <a href="#p4">task attributes</a> to same values
+(in most examples it is <code>wrapper</code> subpackage). Then it is easy to say SQLG to force re-generate all files &ndash;
+simply delete this subpackage (it may be useful in case of DB change that unsynchronizes DB schema state from your Java files &ndash;
+SQLG can only take file changes into account).
+
+<p>To let SQLG runtime system know in which package to search for generated classes, special static fields can be added to processed file.
+In order SQLG runtime to work properly, do not remove these fields (together with generated comments, which are
+essential too, but only for preprocessor, not runtime system).
+
+<h4>5.3. Other annotations</h4>
+There are rare cases when some non-business methods in your DAO code are not called during preprocessing, for example
+if their call appears in non-executed conditional branch. If such methods use query parameters, then their type cannot
+be determined and preprocessor complains the error. In such cases add <a href="api/sqlg2/CheckParams.html"><code>@CheckParams</code></a> annotation
+to these methods to let preprocessor execute them anyway.
+
+<p>Rarely-used <a href="api/sqlg2/BusinessNoSql.html"><code>@BusinessNoSql</code></a> annotation adds business method
+to data access interface but preprocessor never invokes this method, so it cannot code generation (so no query parameters
+and row type class generation). Use it if the preprocessor gets in the way of some higher-level business logic implementation.
+
+<h4>5.4. Custom-mapped types</h4>
+You can define mapping between database columns and user-defined classes. Simple database types (such as NUMERIC) can be
+mapped as well as complex database types (arrays or objects/structs). Since these mappings should be known to preprocessor,
+they are implemented as preprocessor plugin extending standard mapper <a href="api/sqlg2/MapperImpl.html"><code>sqlg2.MapperImpl</code></a>.
+Mapping is two-directional: from Java to SQL and back.
+To establish such a mapping you should provide:
+<ul>
+    <li>Class representing database data;
+    <li>Your implementation of <a href="api/sqlg2/Mapper.html"><code>Mapper</code></a> interface, usually extending
+        standard mapper <a href="api/sqlg2/MapperImpl.html"><code>sqlg2.MapperImpl</code></a>. For the latter you usually
+        override its methods <code>getTestObject</code> (for Java to SQL mapping) and <code>getSpecialType</code> (for SQL to Java mapping).
+    <li>Your implementation of <a href="api/sqlg2/db/RuntimeMapper.html"><code>RuntimeMapper</code></a> interface, usually extending
+        standard runtime mapper <a href="api/sqlg2/db/RuntimeMapperImpl.html"><code>sqlg2.db.RuntimeMapperImpl</code></a>. This implementation
+        should provide methods to:
+    <ul>
+        <li>retrieve the custom-mapped object from <code>ResultSet</code>;
+        <li>set a query parameter to custom-mapped object;
+        <li>register OUT parameter of custom-mapped type;
+        <li>retrieve the custom-mapped object from <code>CallableStatement</code>.
+    </ul>
+</ul>
+You should specify both mappers in <code>mapperClass</code> and <code>runtimeMapperClass</code> <a href="#p4">task attributes</a>.
+
+<p>Mapping uses special syntax in SQL queries &ndash; <code>"column_name#column_type{columns...}"</code> or
+<code>"column_type{columns...}"</code>. See examples:
+<ul>
+<li><a href="examples/all_databases/8_mapping/1_columns">mapping of two simple columns to user-defined class</a>
+<li><a href="examples/all_databases/8_mapping/2_ids">mapping of simple numeric columns to domain-specific user-defined classes</a>
+<li><a href="examples/oracle_specific/1_complex_mapping">mapping of database object type to user-defined class (Oracle-specific)</a>
+</ul>
+
+<p><a href="index.html">[ Back to contents ]</a>
+    <a href="ch3.html">[ To next chapter ]</a>
+</body>
+</html>

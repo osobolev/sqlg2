@@ -1,0 +1,12 @@
+apply plugin: 'java'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+sourceSets.main.java.srcDirs = ['src']
+
+dependencies {
+    compile 'com.github.osobolev.sqlg2:sqlg2-full:4.0'
+}

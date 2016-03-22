@@ -1,0 +1,41 @@
+apply plugin: 'java'
+
+apply from: '../../../db.gradle'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+sourceSets.main.java.srcDirs = ['src']
+
+dependencies {
+    compile project(':mapper')
+    compile 'com.github.osobolev.sqlg2:sqlg2-full:4.0'
+    runtime driverClasspath
+}
+
+task preprocess << {
+    ant.taskdef(name: 'sqlg', classname: 'sqlg2.Preprocess', classpath: configurations.runtime.asPath)
+    ant.sqlg(classpath: configurations.runtime.asPath,
+             driverclass: jdbcDriver, dbclass: dbClass,
+             mapperclass: 'complex.mapper.CustomMapperImpl',
+             runtimemapperclass: 'complex.mapper.CustomRuntimeMapperImpl',
+             url: jdbcUrl, user: username, password: password,
+             implpack: 'wrapper', wrappack: 'wrapper', srcroot: 'src') {
+        fileset(dir: 'src') {
+            include(name: 'complex/db/UserDB.java')
+        }
+    }
+}
+preprocess.onlyIf { doPreprocess }
+compileJava.dependsOn(preprocess)
+
+task run(type: JavaExec, dependsOn: classes) {
+    main = 'complex.Test'
+    classpath = sourceSets.main.runtimeClasspath
+    workingDir = '..'
+    args([jdbcDriver, jdbcUrl, username, password, dbClass].collect {
+        it == '' ? '""' : it
+    })
+}

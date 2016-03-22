@@ -1,0 +1,95 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+    <title>Installation</title>
+    <link href="style.css" rel="stylesheet" type="text/css"/>
+</head>
+<body>
+<a href="index.html">[ Back to contents ]</a>
+
+<h2>1. Installation</h2>
+<a name="p1"><h3>1. Download</h3></a>
+
+<p>You can download SQLG binaries and sources at <a href="http://sourceforge.net/projects/sqlg2">http://sourceforge.net/projects/sqlg2</a>.
+
+<a name="p2"><h3>2. How to build</h3></a>
+
+<p>To build SQLG from sources you need:
+<ul>
+    <li>JDK 1.6 or later
+    <li>Gradle set up to use this JDK (set JAVA_HOME environment variable - see
+    <a href="https://docs.gradle.org/current/userguide/installation.html" target="_blank">Gradle documentation</a>)
+</ul>
+
+Run <code>gradle install</code> on the root <code>build.gradle</code> file to build SQLG libraries and install them to local Maven repository.
+
+<a name="p3"><h3>3. How to run examples</h3></a>
+
+<p>Examples are located at <code>doc/examples</code> directory (<code>db.gradle</code> file is placed there too). To
+run examples, you need:
+<ul>
+    <li>JDK 1.6 or later
+    <li>Gradle set up to use this JDK
+    <li>If you want to test SQLG on another database instead of Derby, you need to know the database details (URL, login, password)
+</ul>
+
+First, you need to configure build environment for your database. You may change following configuration parameters in <code>db.gradle</code> file:
+<table cellspacing="0" cellpadding="2" border="0">
+    <tr>
+        <th>Property</th>
+        <th>Description</th>
+    </tr>
+    <tr>
+        <td><code>jdbcUrl</code></td>
+        <td>JDBC URL</td>
+    </tr>
+    <tr>
+        <td><code>username</code></td>
+        <td>Database login</td>
+    </tr>
+    <tr>
+        <td><code>password</code></td>
+        <td>Database password</td>
+    </tr>
+    <tr>
+        <td><code>jdbcDriver</code></td>
+        <td>JDBC driver class name</td>
+    </tr>
+    <tr>
+        <td><code>dbClass</code></td>
+        <td>SQLG setup for specific database. Possible values: 
+            <code>sqlg2.db.specific.Generic</code>,
+            <code>sqlg2.db.specific.Oracle</code>,
+            <code>sqlg2.db.specific.Postgres</code>,
+            <code>sqlg2.db.specific.MySql</code>
+        </td>
+    </tr>
+    <tr>
+        <td><code>driverClasspath</code></td>
+        <td>JDBC driver classpath - can use Gradle syntax to reference Maven artifacts (example: <code>'org.apache.derby:derby:10.11.1.1'</code>)
+            or simple JAR files (example: <code>file('lib/ojdbc6.jar')</code>)</td>
+    </tr>
+    <tr>
+        <td><code>sqlScript</code></td>
+        <td>Path to SQL script with schema objects definitions used by examples. This script is run when <code>gradle sql</code> command 
+            is executed.</td>
+    </tr>
+    <tr>
+        <td><code>sqlDelimiter</code></td>
+        <td>Optional - SQL statement delimiter to use when running <code>sqlScript</code>. Defaults to ";"</td>
+    </tr>
+</table>
+
+<p>Usually you need simply to uncomment appropriate section of <code>db.gradle</code> (for Embedded Derby, Oracle or PostgreSQL).
+
+<p>To create schema objects used by examples, run <code>gradle sql</code> in <code>doc/examples</code> directory. This command creates
+schema objects in the database specified in <code>db.gradle</code> file. If you do not have a database at hand, you can use Embedded Derby
+variant in <code>db.gradle</code>, which creates <code>TestDB</code> database in the user home directory.
+
+<p>After you have set up database properties, you can run examples. Go to example directory
+(<code>doc/examples/all_databases/example1</code> for instance), then run example as written in README (usually as simple as
+<code>gradle run</code>).
+
+<p><a href="index.html">[ Back to contents ]</a> <a href="ch2.html">[ To next chapter ]</a>
+</body>
+</html>

@@ -1,0 +1,21 @@
+﻿body {
+    font-family: Arial;
+    padding: 30px;
+}
+
+table {
+    border-right: 1px solid black;
+    border-bottom: 1px solid black;
+    margin-top: 5px;
+}
+
+table th {
+    border-left: 1px solid black;
+    border-top: 1px solid black;
+}
+
+table td {
+    border-left: 1px solid black;
+    border-top: 1px solid black;
+    vertical-align: top;
+}

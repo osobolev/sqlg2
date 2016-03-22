@@ -1,0 +1,45 @@
+description = 'SQLG first example'
+
+apply plugin: 'java'
+
+apply from: '../../db.gradle'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+sourceSets.main.java.srcDirs = ['src']
+
+dependencies {
+    compile 'com.github.osobolev.sqlg2:sqlg2-full:4.0'
+    runtime driverClasspath
+}
+
+task preprocess << {
+    ant.taskdef(name: 'sqlg', classname: 'sqlg2.Preprocess', classpath: configurations.runtime.asPath)
+    ant.sqlg(classpath: configurations.runtime.asPath,
+             driverclass: jdbcDriver, dbclass: dbClass,
+             url: jdbcUrl, user: username, password: password,
+             implpack: 'wrapper', wrappack: 'wrapper', srcroot: 'src') {
+        fileset(dir: 'src') {
+            include(name: 'example1/dao/Example1.java')
+        }
+    }
+}
+preprocess.onlyIf { doPreprocess }
+compileJava.dependsOn(preprocess)
+
+clean << {
+    copy {
+        from 'src/example1/dao/Example1.orig' into 'src/example1/dao' rename('Example1.orig', 'Example1.java')
+    }
+}
+
+task run(type: JavaExec, dependsOn: classes) {
+    main = 'example1.Example1Test'
+    classpath = sourceSets.main.runtimeClasspath
+    args([jdbcDriver, jdbcUrl, username, password, dbClass].collect {
+        it == '' ? '""' : it
+    })
+}
