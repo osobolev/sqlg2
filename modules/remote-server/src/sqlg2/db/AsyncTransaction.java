@@ -1,6 +1,6 @@
 package sqlg2.db;
 
-import sqlg2.server.common.ServerGlobals;
+import sqlg2.db.server.ServerGlobals;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;

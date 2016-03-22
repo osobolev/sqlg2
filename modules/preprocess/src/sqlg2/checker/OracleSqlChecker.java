@@ -1,10 +1,14 @@
 package sqlg2.checker;
 
+import sqlg2.SqlChecker;
 import sqlg2.db.specific.OracleDBSpecific;
 import sqlg2.queries.QueryParser;
 
 import java.sql.*;
 
+/**
+ * SQL checker for Oracle
+ */
 public final class OracleSqlChecker implements SqlChecker {
 
     public String getCurrentSchema(DatabaseMetaData meta) throws SQLException {

@@ -1,7 +1,6 @@
 package sqlg2.db;
 
 import sqlg2.LocalWrapperBase;
-import sqlg2.db.specific.DBSpecific;
 
 import java.lang.reflect.Constructor;
 import java.sql.Connection;

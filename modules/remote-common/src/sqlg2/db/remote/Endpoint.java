@@ -1,4 +1,4 @@
-package sqlg2.remote;
+package sqlg2.db.remote;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -9,7 +9,7 @@ import java.net.Proxy;
 import java.net.SocketAddress;
 import java.net.URL;
 
-final class Endpoint implements Serializable {
+public final class Endpoint implements Serializable {
 
     private URL url;
     private Proxy proxy;
@@ -40,7 +40,7 @@ final class Endpoint implements Serializable {
         }
     }
 
-    URL getUrl() {
+    public URL getUrl() {
         return url;
     }
 }

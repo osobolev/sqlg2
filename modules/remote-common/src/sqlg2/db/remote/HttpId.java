@@ -1,4 +1,4 @@
-package sqlg2.remote;
+package sqlg2.db.remote;
 
 import java.io.*;
 import java.util.zip.GZIPInputStream;

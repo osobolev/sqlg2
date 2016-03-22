@@ -1,7 +1,7 @@
 package sqlg2.db.specific;
 
 /**
- * {@link DBSpecific} implementation for MySQL.
+ * {@link sqlg2.db.DBSpecific} implementation for MySQL.
  */
 public final class MySqlDBSpecific extends NoDBSpecific {
 

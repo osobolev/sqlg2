@@ -1,7 +1,5 @@
 package sqlg2;
 
-import sqlg2.GBase;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

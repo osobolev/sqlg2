@@ -1,7 +1,7 @@
 package sqlg2.db.client;
 
 import sqlg2.db.*;
-import sqlg2.remote.WatcherThread;
+import sqlg2.db.remote.WatcherThread;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;

@@ -17,22 +17,42 @@ subprojects {
             attributes('Implementation-Version': version)
         }
     }
+
+    javadoc {
+        onlyIf {
+            project.name == 'sqlg2-full'
+        }
+
+        include(['sqlg2/GBase.java', 'sqlg2/Parameter.java', 'sqlg2/SqlChecker.java',
+                 'sqlg2/Business.java', 'sqlg2/BusinessNoSql.java',  'sqlg2/CheckParams.java', 
+                 'sqlg2/EditableRowType.java', 'sqlg2/RowType.java', 'sqlg2/Prepare.java', 'sqlg2/PrepareKey.java', 
+                 'sqlg2/Sql.java', 'sqlg2/Query.java', 'sqlg2/Call.java', 'sqlg2/SQLG.java', 
+                 'sqlg2/Mapper.java', 'sqlg2/ColumnInfo.java'])
+        include 'sqlg2/db/**'
+        exclude(['sqlg2/db/Impl.java', 'sqlg2/db/RowTypeFactory.java', 'sqlg2/db/Caches.java', 'sqlg2/db/HttpDispatcher.java', 
+                 'sqlg2/db/InternalTransaction.java', 'sqlg2/db/QueryReplacer.java'])
+        include 'sqlg2/checker/**'
+        exclude 'sqlg2/db/remote/**'
+        exclude 'sqlg2/db/server/**'
+        exclude 'sqlg2/lexer/**'
+        exclude 'sqlg2/queries/**'
+    }
 }
 
 def buildSource(projects) {
     def sd = ['src']
     projects.each { 
-        sd.add("$rootProject.projectDir/$it/src")
+        sd.add("$rootProject.projectDir/modules/$it/src")
     }
     sd
 }
 
 project(':sqlg2-client') {
-    sourceSets.main.java.srcDirs = buildSource(['modules/core', 'modules/remote-common', 'modules/remote-client'])
+    sourceSets.main.java.srcDirs = buildSource(['core', 'remote-common', 'remote-client'])
 }
 
 project(':sqlg2-full') {
-    sourceSets.main.java.srcDirs = buildSource(['modules/core', 'modules/runtime', 'modules/remote-common', 'modules/server-common', 'modules/remote-server', 'modules/remote-client', 'modules/local-server', 'modules/preprocess'])
+    sourceSets.main.java.srcDirs = buildSource(['core', 'runtime', 'remote-common', 'server-common', 'remote-server', 'remote-client', 'local-server', 'preprocess'])
     dependencies {
         compileOnly files('lib/antlr-runtime.jar')
         compile 'org.apache.ant:ant:1.9.5'
@@ -43,11 +63,11 @@ project(':sqlg2-full') {
 }
 
 project(':sqlg2-local') {
-    sourceSets.main.java.srcDirs = buildSource(['modules/core', 'modules/runtime', 'modules/server-common', 'modules/local-server'])
+    sourceSets.main.java.srcDirs = buildSource(['core', 'runtime', 'server-common', 'local-server'])
 }
 
 project(':sqlg2-runtime') {
-    sourceSets.main.java.srcDirs = buildSource(['modules/core', 'modules/runtime', 'modules/remote-common', 'modules/server-common', 'modules/remote-server', 'modules/remote-client', 'modules/local-server'])
+    sourceSets.main.java.srcDirs = buildSource(['core', 'runtime', 'remote-common', 'server-common', 'remote-server', 'remote-client', 'local-server'])
 }
 
 project(':sqlg2-gwt') {

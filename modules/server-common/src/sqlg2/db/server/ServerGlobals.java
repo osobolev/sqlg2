@@ -1,9 +1,9 @@
-package sqlg2.server.common;
+package sqlg2.db.server;
 
 import sqlg2.db.Caches;
+import sqlg2.db.DBSpecific;
 import sqlg2.db.SQLGLogger;
 import sqlg2.db.SqlTrace;
-import sqlg2.db.specific.DBSpecific;
 
 public final class ServerGlobals {
 

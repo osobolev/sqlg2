@@ -1,7 +1,12 @@
 package sqlg2.checker;
 
+import sqlg2.SqlChecker;
+
 import java.sql.*;
 
+/**
+ * Base SQL checker for generic JDBC database - disallows sequences.
+ */
 public class NoSqlChecker implements SqlChecker {
 
     public String getCurrentSchema(DatabaseMetaData meta) throws SQLException {

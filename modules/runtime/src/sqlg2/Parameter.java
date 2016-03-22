@@ -1,7 +1,7 @@
 package sqlg2;
 
-import sqlg2.db.SQLGException;
 import sqlg2.db.Impl;
+import sqlg2.db.SQLGException;
 import sqlg2.db.TypedList;
 
 import java.io.Serializable;

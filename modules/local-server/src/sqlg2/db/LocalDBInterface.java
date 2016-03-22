@@ -1,9 +1,8 @@
 package sqlg2.db;
 
-import sqlg2.db.specific.DBSpecific;
-import sqlg2.server.common.ServerGlobals;
-import sqlg2.server.common.SimpleTransaction;
-import sqlg2.server.common.Transaction;
+import sqlg2.db.server.ServerGlobals;
+import sqlg2.db.server.SimpleTransaction;
+import sqlg2.db.server.Transaction;
 
 import java.sql.SQLException;
 

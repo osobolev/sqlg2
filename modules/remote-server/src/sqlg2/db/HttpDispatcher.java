@@ -1,7 +1,6 @@
 package sqlg2.db;
 
-import sqlg2.db.specific.DBSpecific;
-import sqlg2.remote.*;
+import sqlg2.db.remote.*;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;

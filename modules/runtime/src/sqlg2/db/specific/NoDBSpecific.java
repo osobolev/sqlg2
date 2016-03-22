@@ -1,5 +1,7 @@
 package sqlg2.db.specific;
 
+import sqlg2.db.DBSpecific;
+
 import java.io.OutputStream;
 import java.io.Writer;
 import java.sql.*;

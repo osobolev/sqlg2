@@ -1,7 +1,6 @@
-package sqlg2.server.common;
+package sqlg2.db.server;
 
 import sqlg2.db.*;
-import sqlg2.db.specific.DBSpecific;
 
 import java.sql.Connection;
 import java.sql.SQLException;

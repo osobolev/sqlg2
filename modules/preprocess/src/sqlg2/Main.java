@@ -1,8 +1,7 @@
 package sqlg2;
 
-import sqlg2.checker.SqlChecker;
+import sqlg2.db.DBSpecific;
 import sqlg2.db.RuntimeMapper;
-import sqlg2.db.specific.DBSpecific;
 
 import java.io.*;
 import java.lang.reflect.Method;

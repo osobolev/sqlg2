@@ -1,10 +1,6 @@
 package sqlg2;
 
-import sqlg2.db.IDBCommon;
-import sqlg2.db.SQLGException;
-import sqlg2.db.SQLGLogger;
 import sqlg2.db.*;
-import sqlg2.db.specific.DBSpecific;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;

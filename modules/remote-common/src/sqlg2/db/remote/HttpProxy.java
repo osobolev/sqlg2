@@ -1,4 +1,4 @@
-package sqlg2.remote;
+package sqlg2.db.remote;
 
 import sqlg2.db.RemoteException;
 import sqlg2.db.UnrecoverableRemoteException;
@@ -8,15 +8,14 @@ import java.net.HttpURLConnection;
 import java.net.Proxy;
 import java.net.URL;
 
-class HttpProxy implements Serializable {
+public class HttpProxy implements Serializable {
 
     protected final HttpId id;
 
     private transient Endpoint endpoint;
 
-    HttpProxy(HttpId id, Endpoint endpoint) {
+    protected HttpProxy(HttpId id) {
         this.id = id;
-        this.endpoint = endpoint;
     }
 
     HttpProxy(HttpId id, HttpProxy root) {
@@ -24,7 +23,7 @@ class HttpProxy implements Serializable {
         setEndpoint(root);
     }
 
-    protected final void setEndpoint(HttpProxy root) {
+    public final void setEndpoint(HttpProxy root) {
         if (root != null) {
             this.endpoint = root.endpoint;
         }

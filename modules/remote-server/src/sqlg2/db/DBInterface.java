@@ -1,9 +1,9 @@
 package sqlg2.db;
 
-import sqlg2.remote.WatcherThread;
-import sqlg2.server.common.ServerGlobals;
-import sqlg2.server.common.SimpleTransaction;
-import sqlg2.server.common.Transaction;
+import sqlg2.db.server.ServerGlobals;
+import sqlg2.db.server.SimpleTransaction;
+import sqlg2.db.server.Transaction;
+import sqlg2.db.remote.WatcherThread;
 
 import java.sql.SQLException;
 import java.util.concurrent.atomic.AtomicLong;

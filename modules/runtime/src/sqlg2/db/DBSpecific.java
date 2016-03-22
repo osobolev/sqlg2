@@ -1,4 +1,4 @@
-package sqlg2.db.specific;
+package sqlg2.db;
 
 import java.io.OutputStream;
 import java.io.Writer;

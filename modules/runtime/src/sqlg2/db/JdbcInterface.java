@@ -1,7 +1,5 @@
 package sqlg2.db;
 
-import sqlg2.db.specific.DBSpecific;
-
 import java.sql.Connection;
 
 /**

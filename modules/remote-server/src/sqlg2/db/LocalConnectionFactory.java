@@ -1,7 +1,6 @@
 package sqlg2.db;
 
-import sqlg2.db.specific.DBSpecific;
-import sqlg2.server.common.ServerGlobals;
+import sqlg2.db.server.ServerGlobals;
 
 import java.sql.SQLException;
 import java.util.*;

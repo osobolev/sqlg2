@@ -1,9 +1,9 @@
-package sqlg2.remote;
+package sqlg2.db.client;
 
 import sqlg2.db.IConnectionFactory;
 import sqlg2.db.IRemoteDBInterface;
 import sqlg2.db.RemoteException;
-import sqlg2.db.UnrecoverableRemoteException;
+import sqlg2.db.remote.*;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -11,6 +11,9 @@ import java.io.ObjectOutputStream;
 import java.net.*;
 import java.sql.SQLException;
 
+/**
+ * {@link IConnectionFactory} implementation for remote calls.
+ */
 public final class HttpConnectionFactory extends HttpProxy implements IConnectionFactory {
 
     public HttpConnectionFactory(String url, Proxy proxy, String application) throws URISyntaxException, MalformedURLException {
@@ -18,7 +21,8 @@ public final class HttpConnectionFactory extends HttpProxy implements IConnectio
     }
 
     public HttpConnectionFactory(URL url, Proxy proxy, String application) {
-        super(new HttpId(application), new Endpoint(url, proxy));
+        super(new HttpId(application));
+        setEndpoint(url, proxy);
     }
 
     public IRemoteDBInterface openConnection(String user, String password) throws SQLException {

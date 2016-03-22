@@ -1,10 +1,9 @@
 package sqlg2;
 
-import sqlg2.checker.SqlChecker;
+import sqlg2.db.DBSpecific;
 import sqlg2.db.Impl;
 import sqlg2.db.RuntimeMapper;
 import sqlg2.db.SQLGException;
-import sqlg2.db.specific.DBSpecific;
 import sqlg2.queries.QueryParser;
 
 import java.lang.reflect.InvocationHandler;

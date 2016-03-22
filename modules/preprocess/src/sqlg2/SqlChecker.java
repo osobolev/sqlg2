@@ -1,4 +1,4 @@
-package sqlg2.checker;
+package sqlg2;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;

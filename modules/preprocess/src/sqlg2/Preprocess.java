@@ -5,7 +5,7 @@ import org.apache.tools.ant.DirectoryScanner;
 import org.apache.tools.ant.Location;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.types.FileSet;
-import sqlg2.db.specific.DBSpecific;
+import sqlg2.db.DBSpecific;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -205,7 +205,7 @@ public class Preprocess extends Task {
                 StackTraceElement element = st[lastBase + 1];
                 String fileName = element.getFileName();
                 int line = element.getLineNumber();
-                throw new BuildException(ex.getMessage(), ex, new Location(fileName, line, 0));
+                throw new BuildException(fileName + ":" + line + ": " + ex.getMessage(), ex);
             } else {
                 throw new BuildException(ex);
             }

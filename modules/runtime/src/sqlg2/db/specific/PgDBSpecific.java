@@ -6,7 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * {@link DBSpecific} implementation for PostgreSQL.
+ * {@link sqlg2.db.DBSpecific} implementation for PostgreSQL.
  */
 public final class PgDBSpecific extends NoDBSpecific {
 

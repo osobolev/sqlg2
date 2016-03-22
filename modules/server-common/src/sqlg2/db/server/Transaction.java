@@ -1,4 +1,4 @@
-package sqlg2.server.common;
+package sqlg2.db.server;
 
 import sqlg2.db.ConnectionManager;
 import sqlg2.db.ITransaction;
