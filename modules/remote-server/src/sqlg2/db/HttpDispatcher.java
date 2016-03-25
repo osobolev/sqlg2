@@ -200,7 +200,11 @@ public final class HttpDispatcher {
         } catch (RemoteException ex) {
             throw ex;
         } catch (Throwable ex) {
-            lw.globals.getLogger().error(ex);
+            if (db != null) {
+                db.getLogger().error(ex);
+            } else {
+                lw.globals.getLogger().error(ex);
+            }
             throw ex;
         }
     }

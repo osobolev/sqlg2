@@ -10,6 +10,7 @@ public interface SQLGLogger {
 
     void error(Throwable error);
 
+    @SuppressWarnings("UseOfSystemOutOrSystemErr")
     class Simple implements SQLGLogger {
 
         public void trace(String message) {
@@ -25,7 +26,7 @@ public interface SQLGLogger {
         }
 
         public void error(Throwable error) {
-            error.printStackTrace();
+            error.printStackTrace(System.err);
         }
     }
 }

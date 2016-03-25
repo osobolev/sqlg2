@@ -16,6 +16,7 @@ final class DBInterface implements IRemoteDBInterface {
     private final String userHost;
     private final LocalConnectionFactory fact;
     private final ServerGlobals globals;
+    private final SQLGLogger logger;
     private final Object userObject;
     private final boolean server;
     final long sessionOrderId;
@@ -32,12 +33,13 @@ final class DBInterface implements IRemoteDBInterface {
         this.cman = cman;
         this.fact = fact;
         this.globals = fact.globals;
+        this.logger = globals.getLogger();
         this.userObject = userObject;
         this.sessionOrderId = sessionOrderId;
         this.sessionLongId = sessionLongId;
         this.server = server;
         if (LocalConnectionFactory.TRACE) {
-            globals.getLogger().info("Opened " + getConnectionName());
+            getLogger().info("Opened " + getConnectionName());
         }
     }
 
@@ -46,15 +48,15 @@ final class DBInterface implements IRemoteDBInterface {
     }
 
     public ISimpleTransaction getSimpleTransaction() {
-        return new SimpleTransaction(globals, cman);
+        return new SimpleTransaction(getLogger(), globals, cman);
     }
 
     public ISimpleTransaction getAsyncTransaction() {
-        return new AsyncTransaction(this, globals);
+        return new AsyncTransaction(this);
     }
 
     public ITransaction getTransaction() {
-        return new Transaction(globals, cman);
+        return new Transaction(getLogger(), globals, cman);
     }
 
     static long getCurrentTime() {
@@ -67,22 +69,22 @@ final class DBInterface implements IRemoteDBInterface {
 
     void tracePing() {
         if (LocalConnectionFactory.TRACE) {
-            globals.getLogger().trace(":: Ping");
+            getLogger().trace(":: Ping");
         }
     }
 
     private void close(boolean explicit) {
         if (LocalConnectionFactory.TRACE) {
             if (explicit) {
-                globals.getLogger().info("Closing " + getConnectionName());
+                getLogger().info("Closing " + getConnectionName());
             } else {
-                globals.getLogger().info("Closing inactive " + getConnectionName());
+                getLogger().info("Closing inactive " + getConnectionName());
             }
         }
         try {
             cman.close();
         } catch (SQLException ex) {
-            globals.getLogger().error(ex);
+            getLogger().error(ex);
         }
     }
 
@@ -125,5 +127,9 @@ final class DBInterface implements IRemoteDBInterface {
 
     DBInterface createBackground() throws SQLException {
         return fact.createConnection(userLogin, password, userHost, true);
+    }
+
+    SQLGLogger getLogger() {
+        return logger;
     }
 }

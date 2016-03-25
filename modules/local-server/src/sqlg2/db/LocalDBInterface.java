@@ -17,22 +17,26 @@ public final class LocalDBInterface implements IDBInterface {
     }
 
     public ISimpleTransaction getSimpleTransaction() {
-        return new SimpleTransaction(globals, cman);
+        return new SimpleTransaction(getLogger(), globals, cman);
     }
 
     public ITransaction getTransaction() {
-        return new Transaction(globals, cman);
+        return new Transaction(getLogger(), globals, cman);
     }
 
     public void close() {
         try {
             cman.close();
         } catch (SQLException ex) {
-            globals.getLogger().error(ex);
+            getLogger().error(ex);
         }
     }
 
     public void setSqlTrace(SqlTrace trace) {
         globals.setSqlTrace(trace);
+    }
+
+    public SQLGLogger getLogger() {
+        return globals.getLogger();
     }
 }

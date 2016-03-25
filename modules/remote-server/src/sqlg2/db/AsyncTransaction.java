@@ -1,7 +1,5 @@
 package sqlg2.db;
 
-import sqlg2.db.server.ServerGlobals;
-
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -10,11 +8,9 @@ import java.lang.reflect.Proxy;
 final class AsyncTransaction implements ISimpleTransaction {
 
     private final DBInterface db;
-    private final ServerGlobals globals;
 
-    AsyncTransaction(DBInterface db, ServerGlobals globals) {
+    AsyncTransaction(DBInterface db) {
         this.db = db;
-        this.globals = globals;
     }
 
     @SuppressWarnings("unchecked")
@@ -32,9 +28,9 @@ final class AsyncTransaction implements ISimpleTransaction {
                                 background.close();
                             }
                         } catch (InvocationTargetException ex) {
-                            globals.getLogger().error(ex.getTargetException());
+                            db.getLogger().error(ex.getTargetException());
                         } catch (Exception ex) {
-                            globals.getLogger().error(ex);
+                            db.getLogger().error(ex);
                         }
                     }
                 });

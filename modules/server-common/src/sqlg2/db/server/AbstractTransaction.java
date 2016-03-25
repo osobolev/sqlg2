@@ -7,12 +7,14 @@ import java.sql.SQLException;
 
 abstract class AbstractTransaction extends InternalTransaction implements ISimpleTransaction {
 
+    private final SQLGLogger logger;
     private final ServerGlobals globals;
     private final ConnectionManager cman;
     private Connection conn = null;
     private final Object connLock = new Object();
 
-    protected AbstractTransaction(ServerGlobals globals, ConnectionManager cman) {
+    protected AbstractTransaction(SQLGLogger logger, ServerGlobals globals, ConnectionManager cman) {
+        this.logger = logger;
         this.globals = globals;
         this.cman = cman;
     }
@@ -39,7 +41,7 @@ abstract class AbstractTransaction extends InternalTransaction implements ISimpl
                     try {
                         cman.rollback(conn);
                     } catch (SQLException ex2) {
-                        globals.getLogger().error(ex2);
+                        logger.error(ex2);
                     }
                     throw ex;
                 } finally {
@@ -76,6 +78,6 @@ abstract class AbstractTransaction extends InternalTransaction implements ISimpl
     }
 
     public final SQLGLogger getLogger() {
-        return globals.getLogger();
+        return logger;
     }
 }

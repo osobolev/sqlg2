@@ -1,13 +1,14 @@
 package sqlg2.db.server;
 
 import sqlg2.db.ConnectionManager;
+import sqlg2.db.SQLGLogger;
 
 import java.sql.SQLException;
 
 public final class SimpleTransaction extends AbstractTransaction {
 
-    public SimpleTransaction(ServerGlobals globals, ConnectionManager cman) {
-        super(globals, cman);
+    public SimpleTransaction(SQLGLogger logger, ServerGlobals globals, ConnectionManager cman) {
+        super(logger, globals, cman);
     }
 
     public void commitImmediate() throws SQLException {
