@@ -54,7 +54,7 @@ def buildSource(projects) {
 }
 
 project(':sqlg2-client') {
-    sourceSets.main.java.srcDirs = buildSource(['core', 'remote-common', 'remote-client'])
+    sourceSets.main.java.srcDirs = buildSource(['core', 'remote-common', 'remote-client', 'gbase-stub'])
 }
 
 project(':sqlg2-full') {
