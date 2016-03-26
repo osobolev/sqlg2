@@ -58,7 +58,6 @@ project(':sqlg2-client') {
 }
 
 project(':sqlg2-full') {
-    
     sourceSets.main.java.srcDirs = buildSource(['core', 'runtime', 'remote-common', 'server-common', 'remote-server', 'remote-client', 'local-server', 'preprocess'])
 
     configurations { antlrLib }

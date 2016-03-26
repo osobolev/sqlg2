@@ -35,7 +35,7 @@ final class MethodRunner {
     private final StringBuilder later = new StringBuilder();
     private final Map<String, ColumnData> generatedIn;
     private final Map<String, ColumnData> generatedOut;
-    private final Set<String> generatedOutMethod = new HashSet<String>();
+    private final Set<String> generatedMethod = new HashSet<String>();
 
     MethodRunner(Class<?> cls, String className, String encoding, String tab,
                  String separate, List<Entry> entries, File srcRoot, boolean gwt, SQLGWarn warn, boolean log,
@@ -54,22 +54,42 @@ final class MethodRunner {
         this.generatedOut = generatedOut;
     }
 
-    private void generateConstructor(StringBuilder later, String entryName, List<ColumnInfo> columns, boolean db) {
+    private void generateConstructor(StringBuilder buf,
+                                     String start, String entryName,
+                                     List<ColumnInfo> columns,
+                                     String[] types, boolean db) {
+        buf.append('\n');
         if (db) {
-            later.append(tab).append(tab);
-            later.append("public ").append(entryName).append("Impl(java.sql.ResultSet ").append(GTestImpl.RESULT_SET);
-            later.append(", sqlg2.GBase ").append(GTestImpl.BASE);
-            later.append(") throws java.sql.SQLException {\n");
-            for (ColumnInfo column : columns) {
-                later.append(tab).append(tab).append(tab);
-                later.append("this.");
-                later.append(column.name);
-                later.append(" = ").append(column.fetchMethod).append(";\n");
+            buf.append(start).append(tab);
+            buf.append("public " + entryName + "(");
+            for (int j = 0; j < columns.size(); j++) {
+                if (j > 0) {
+                    buf.append(", ");
+                }
+                buf.append(types[j]);
+                buf.append(' ');
+                buf.append(columns.get(j).name);
+            }
+            buf.append(") {\n");
+            for (ColumnInfo col : columns) {
+                String field = col.name;
+                buf.append(start).append(tab).append(tab).append("this." + field + " = " + field + ";\n");
             }
         } else {
-            later.append(tab).append(tab).append("public ").append(entryName).append("Impl() {\n");
+            buf.append(start).append(tab);
+            buf.append("public " + entryName + "() {\n");
         }
-        later.append(tab).append(tab).append("}\n");
+        buf.append(start).append(tab).append("}\n");
+    }
+
+    private void generateConstructors(StringBuilder buf,
+                                      String start, String entryName,
+                                      List<ColumnInfo> columns,
+                                      String[] types, boolean editable) {
+        if (editable) {
+            generateConstructor(buf, start, entryName, columns, types, false);
+        }
+        generateConstructor(buf, start, entryName, columns, types, true);
     }
 
     private Object[] getTestParams(Method method) throws ParseException {
@@ -256,9 +276,10 @@ final class MethodRunner {
             buf.append(tab);
             rowType.replaceTo = buf.toString();
         }
+        String implName = rowType.className + "Impl";
         {
             later.append("\n").append(tab).append("public static final class ");
-            later.append(rowType.className).append("Impl " + (isInterface ? "implements" : "extends") + " ");
+            later.append(implName).append(" ").append(isInterface ? "implements" : "extends").append(" ");
             later.append(separate == null ? "" : className + ".");
             later.append(rowType.className);
             if (isInterface) {
@@ -268,15 +289,11 @@ final class MethodRunner {
             }
             later.append(" java.io.Serializable {\n\n");
             generateFields(types, columns, editable);
-            later.append('\n');
-            generateConstructor(later, rowType.className, columns, true);
-            if (editable) {
-                later.append("\n");
-                generateConstructor(later, rowType.className, columns, false);
-            }
+            generateConstructors(later, tab, implName, columns, types, editable);
             generateGettersSetters(later, tab, false, types, columns, editable);
             later.append(tab).append("}\n");
         }
+        generateCreate(cls, implName, columns);
     }
 
     private void generateFields(String[] types, List<ColumnInfo> columns, boolean editable) {
@@ -398,27 +415,7 @@ final class MethodRunner {
                 buf.append(columns.get(j).name);
                 buf.append(";\n");
             }
-            if (gwt) {
-                buf.append('\n');
-                buf.append(tab).append("public " + cls.getSimpleName() + "() {\n");
-                buf.append(tab).append("}\n");
-            }
-            buf.append('\n');
-            buf.append(tab).append("public " + cls.getSimpleName() + "(");
-            for (int j = 0; j < columns.size(); j++) {
-                if (j > 0) {
-                    buf.append(", ");
-                }
-                buf.append(types[j]);
-                buf.append(' ');
-                buf.append(columns.get(j).name);
-            }
-            buf.append(") {\n");
-            for (ColumnInfo col : columns) {
-                String field = col.name;
-                buf.append(tab).append(tab).append("this." + field + " = " + field + ";\n");
-            }
-            buf.append(tab).append("}\n");
+            generateConstructors(buf, "", cls.getSimpleName(), columns, types, gwt);
             generateGettersSetters(buf, "", true, types, columns, editable);
             CutPaste cp = new SimpleCutPaste(start.getColumn() + 1, end.getColumn(), buf.toString());
             StringBuilder textBuf = new StringBuilder(parser.text);
@@ -427,14 +424,19 @@ final class MethodRunner {
             pw.print(textBuf);
             pw.close();
         }
-        if (!generatedOutMethod.contains(key)) {
-            generatedOutMethod.add(key);
+        generateCreate(cls, cls.getName(), columns);
+    }
+
+    private void generateCreate(Class<?> cls, String className, List<ColumnInfo> columns) {
+        String key = cls.getName();
+        if (!generatedMethod.contains(key)) {
+            generatedMethod.add(key);
 
             later.append('\n');
-            later.append(tab).append("public static ").append(cls.getName()).append(" create").append(cls.getSimpleName()).append("(java.sql.ResultSet ");
+            later.append(tab).append("public static ").append(className).append(" create").append(cls.getSimpleName()).append("(java.sql.ResultSet ");
             later.append(GTestImpl.RESULT_SET);
             later.append(", sqlg2.GBase ").append(GTestImpl.BASE).append(") throws java.sql.SQLException {\n");
-            later.append(tab).append(tab).append("return new ").append(cls.getName()).append("(");
+            later.append(tab).append(tab).append("return new ").append(className).append("(");
             for (int i = 0; i < columns.size(); i++) {
                 if (i > 0) {
                     later.append(", ");

@@ -149,17 +149,6 @@ public class LocalWrapperBase {
         }
     }
 
-    /**
-     * pack.TestDao$Row -> pack.wrapper.TestDaoImpl$RowImpl
-     */
-    private static String getImplName(Class<?> cls) {
-        Class<?> parent = cls.getDeclaringClass();
-        String baseName = getBaseImplName(parent);
-        String name = cls.getName();
-        int q = name.lastIndexOf('$');
-        return baseName + "$" + getNestedImplName(name.substring(q + 1));
-    }
-
     private static Method findMethod(Class<?> cls, Class<? extends GBase> base) {
         Throwable cause;
         try {
@@ -174,14 +163,38 @@ public class LocalWrapperBase {
         throw new SQLGException("Cannot find factory method", cause);
     }
 
-    private static Constructor<?> findConstructor(Class<?> cls, boolean db) {
+    RowTypeFactory findFactory(Class<?> cls, Class<? extends GBase> base) {
+        ConcurrentMap<Class<?>, RowTypeFactory> cache = trans.getCaches().getRowTypeFactoryMap();
+        RowTypeFactory f = cache.get(cls);
+        if (f != null) {
+            return f;
+        } else {
+            Method method = findMethod(cls, base);
+            RowTypeFactory factory = new RowTypeFactory(method);
+            cache.put(cls, factory);
+            return factory;
+        }
+    }
+
+    /**
+     * pack.TestDao$Row -> pack.wrapper.TestDaoImpl$RowImpl
+     */
+    private static String getImplName(Class<?> parent, Class<?> cls) {
+        String baseName = getBaseImplName(parent);
+        String name = cls.getName();
+        int q = name.lastIndexOf('$');
+        return baseName + "$" + getNestedImplName(name.substring(q + 1));
+    }
+
+    static Constructor<?> getDefaultConstructor(Class<?> cls) {
         Throwable cause;
         try {
-            String implName = getImplName(cls);
-            Class<?> impl = loadClass(implName);
-            if (db) {
-                return impl.getConstructor(ResultSet.class, GBase.class);
+            Class<?> parent = cls.getDeclaringClass();
+            if (parent == null) {
+                return cls.getConstructor();
             } else {
+                String implName = getImplName(parent, cls);
+                Class<?> impl = loadClass(implName);
                 return impl.getConstructor();
             }
         } catch (ClassNotFoundException cnfe) {
@@ -190,29 +203,6 @@ public class LocalWrapperBase {
             cause = nsme;
         }
         throw new SQLGException("Cannot find constructor", cause);
-    }
-
-    RowTypeFactory findFactory(Class<?> cls, Class<? extends GBase> base) {
-        ConcurrentMap<Class<?>, RowTypeFactory> cache = trans.getCaches().getRowTypeFactoryMap();
-        RowTypeFactory f = cache.get(cls);
-        if (f != null) {
-            return f;
-        } else {
-            RowTypeFactory factory;
-            if (cls.getDeclaringClass() == null) {
-                Method method = findMethod(cls, base);
-                factory = new RowTypeFactory(null, method);
-            } else {
-                Constructor<?> cons = findConstructor(cls, true);
-                factory = new RowTypeFactory(cons, null);
-            }
-            cache.put(cls, factory);
-            return factory;
-        }
-    }
-
-    static Constructor<?> getDefaultConstructor(Class<?> cls) {
-        return findConstructor(cls, false);
     }
 
     final DBSpecific getSpecific() {
