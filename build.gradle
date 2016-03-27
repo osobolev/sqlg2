@@ -45,16 +45,16 @@ subprojects {
     }
 }
 
-def buildSource(projects) {
+def buildSource(dirs) {
     def sd = ['src']
-    projects.each { 
+    dirs.each { 
         sd.add("$rootProject.projectDir/modules/$it/src")
     }
     sd
 }
 
 project(':sqlg2-client') {
-    sourceSets.main.java.srcDirs = buildSource(['core', 'remote-common', 'remote-client', 'gbase-stub'])
+    sourceSets.main.java.srcDirs = buildSource(['core', 'remote-common', 'remote-client']) + ['gbase-stub']
 }
 
 project(':sqlg2-full') {
