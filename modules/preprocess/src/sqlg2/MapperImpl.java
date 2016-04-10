@@ -243,6 +243,8 @@ public class MapperImpl implements Mapper {
         case Types.CHAR:
         case Types.VARCHAR:
         case Types.LONGVARCHAR:
+        case Types.NCHAR:
+        case Types.NVARCHAR:
             return new FetchClass(String.class, "getString");
         case Types.CLOB:
         case Types.NCLOB:

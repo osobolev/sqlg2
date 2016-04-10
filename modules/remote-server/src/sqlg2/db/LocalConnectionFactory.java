@@ -107,7 +107,6 @@ public final class LocalConnectionFactory implements IConnectionFactory {
                 info[j++] = getInfo(time, rec);
             }
             Arrays.sort(info, new Comparator<SessionInfo>() {
-                @Override
                 public int compare(SessionInfo o1, SessionInfo o2) {
                     return Long.valueOf(o1.sessionOrderId).compareTo(o2.sessionOrderId);
                 }

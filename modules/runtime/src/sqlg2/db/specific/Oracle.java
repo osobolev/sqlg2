@@ -1,6 +1,7 @@
 package sqlg2.db.specific;
 
 import sqlg2.db.DBSpecific;
+import sqlg2.db.Impl;
 
 import java.io.OutputStream;
 import java.io.Writer;
@@ -115,9 +116,9 @@ public final class Oracle implements DBSpecific {
         } catch (InvocationTargetException ex) {
             if (ex.getTargetException() instanceof SQLException)
                 throw (SQLException) ex.getTargetException();
-            throw new SQLException(ex);
+            throw Impl.wrap(ex);
         } catch (IllegalAccessException ex) {
-            throw new SQLException(ex);
+            throw Impl.wrap(ex);
         }
     }
 

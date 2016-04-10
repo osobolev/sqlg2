@@ -1,6 +1,7 @@
 package sqlg2;
 
 import sqlg2.db.DBSpecific;
+import sqlg2.db.Impl;
 import sqlg2.db.RuntimeMapper;
 
 import java.io.*;
@@ -250,21 +251,21 @@ final class Main extends Options {
                     specific = (DBSpecific) Class.forName(dbClass).newInstance();
                     factory = (WrapperGeneratorFactory) Class.forName(wrapperClass).newInstance();
                 } catch (ClassNotFoundException ex) {
-                    throw new SQLException(ex);
+                    throw Impl.wrap(ex);
                 }
                 String checkerClassName = specific.getCheckerClassName();
                 SqlChecker checker;
                 try {
                     checker = (SqlChecker) Class.forName(checkerClassName).newInstance();
                 } catch (ClassNotFoundException ex) {
-                    throw new SQLException(ex);
+                    throw Impl.wrap(ex);
                 }
                 GTestImpl.INSTANCE.init(DriverManager.getConnection(url, user, pass), checker, mapper, runtimeMapper, specific);
                 inited = true;
             }
             String pack = getPackage(in[i]);
             String className = getClassName(in[i]);
-            String fullClassName = pack == null || pack.isEmpty() ? className : pack + "." + className;
+            String fullClassName = pack == null || pack.length() <= 0 ? className : pack + "." + className;
             List<Entry> entries = parser.getEntries();
             String[] imports = parser.getImports();
             Class<?> cls = new Runner(getTmpDir()).compileAndLoad(srcRoot, compFiles[i], fullClassName, encoding, classpath);

@@ -23,7 +23,7 @@ public class SingleConnectionManager implements ConnectionManager {
         try {
             Class.forName(driver);
         } catch (ClassNotFoundException ex) {
-            throw new SQLException(DRIVER_NOT_FOUND, ex);
+            throw Impl.wrap(DRIVER_NOT_FOUND, ex);
         }
         Connection conn = DriverManager.getConnection(url, user, pass);
         conn.setAutoCommit(false);
