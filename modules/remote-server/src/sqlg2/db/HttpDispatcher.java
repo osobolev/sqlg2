@@ -162,18 +162,30 @@ public final class HttpDispatcher {
     }
 
     @SuppressWarnings("unchecked")
-    private Object dispatch(ObjectInputStream ois, String hostName) throws Throwable {
+    private Object dispatch(InputStream is, String hostName) throws Throwable {
         DBInterface db = null;
+        Throwable invocationError;
         try {
-            HttpId id = (HttpId) ois.readObject();
-            if (id.sessionId != null) {
-                db = checkSession(id);
+            HttpId id;
+            HttpCommand command;
+            Class<? extends IDBCommon> iface;
+            String method;
+            Class<?>[] paramTypes;
+            Object[] params;
+            ObjectInputStream ois = HttpId.readData(is);
+            try {
+                id = (HttpId) ois.readObject();
+                if (id.sessionId != null) {
+                    db = checkSession(id);
+                }
+                command = (HttpCommand) ois.readObject();
+                iface = (Class<? extends IDBCommon>) ois.readObject();
+                method = (String) ois.readObject();
+                paramTypes = (Class<?>[]) ois.readObject();
+                params = (Object[]) ois.readObject();
+            } finally {
+                ois.close();
             }
-            HttpCommand command = (HttpCommand) ois.readObject();
-            Class<? extends IDBCommon> iface = (Class<? extends IDBCommon>) ois.readObject();
-            String method = (String) ois.readObject();
-            Class<?>[] paramTypes = (Class<?>[]) ois.readObject();
-            Object[] params = (Object[]) ois.readObject();
             if (command == HttpCommand.INVOKE || command == HttpCommand.INVOKE_ASYNC) {
                 Object impl;
                 if (id.transactionId != null) {
@@ -192,7 +204,7 @@ public final class HttpDispatcher {
                 try {
                     return toInvoke.invoke(impl, params);
                 } catch (InvocationTargetException ex) {
-                    throw ex.getTargetException();
+                    invocationError = ex.getTargetException();
                 }
             } else {
                 return actions.get(command).perform(id, hostName, params);
@@ -205,8 +217,9 @@ public final class HttpDispatcher {
             } else {
                 lw.globals.getLogger().error(ex);
             }
-            throw ex;
+            throw new RemoteException(ex);
         }
+        throw invocationError;
     }
 
     /**
@@ -217,11 +230,10 @@ public final class HttpDispatcher {
      * @param os output data
      */
     public void dispatch(String hostName, InputStream is, OutputStream os) throws IOException {
-        ObjectInputStream ois = HttpId.readData(is);
         Object result = null;
         Throwable error = null;
         try {
-            result = dispatch(ois, hostName);
+            result = dispatch(is, hostName);
         } catch (Throwable ex) {
             error = ex;
         }
@@ -230,9 +242,12 @@ public final class HttpDispatcher {
 
     public static void writeResponse(OutputStream os, Object result, Throwable error) throws IOException {
         ObjectOutputStream oos = HttpId.writeData(os);
-        oos.writeObject(result);
-        oos.writeObject(error);
-        oos.close();
+        try {
+            oos.writeObject(result);
+            oos.writeObject(error);
+        } finally {
+            oos.close();
+        }
     }
 
     /**
