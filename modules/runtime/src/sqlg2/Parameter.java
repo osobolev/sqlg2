@@ -207,6 +207,14 @@ public final class Parameter implements Serializable {
         }
     }
 
+    private Object checkNull(CallableStatement cs, Object value) throws SQLException {
+        if (cls != null && cs.wasNull() && !cls.isPrimitive()) {
+            return null;
+        } else {
+            return value;
+        }
+    }
+
     private Object doGet(GBase base, CallableStatement cs, int index) throws SQLException {
         if (jdbcType != null) {
             switch (jdbcType.intValue()) {
@@ -269,23 +277,23 @@ public final class Parameter implements Serializable {
             }
         }
         if (Byte.class.isAssignableFrom(cls) || Byte.TYPE.isAssignableFrom(cls)) {
-            return cs.getByte(index);
+            return checkNull(cs, cs.getByte(index));
         } else if (Short.class.isAssignableFrom(cls) || Short.TYPE.isAssignableFrom(cls)) {
-            return cs.getShort(index);
+            return checkNull(cs, cs.getShort(index));
         } else if (Integer.class.isAssignableFrom(cls) || Integer.TYPE.isAssignableFrom(cls)) {
-            return cs.getInt(index);
+            return checkNull(cs, cs.getInt(index));
         } else if (Long.class.isAssignableFrom(cls) || Long.TYPE.isAssignableFrom(cls)) {
-            return cs.getLong(index);
+            return checkNull(cs, cs.getLong(index));
         } else if (Float.class.isAssignableFrom(cls) || Float.TYPE.isAssignableFrom(cls)) {
-            return cs.getFloat(index);
+            return checkNull(cs, cs.getFloat(index));
         } else if (Double.class.isAssignableFrom(cls) || Double.TYPE.isAssignableFrom(cls)) {
-            return cs.getDouble(index);
+            return checkNull(cs, cs.getDouble(index));
         } else if (BigDecimal.class.isAssignableFrom(cls)) {
             return cs.getBigDecimal(index);
         } else if (String.class.isAssignableFrom(cls)) {
             return cs.getString(index);
         } else if (Boolean.class.isAssignableFrom(cls) || Boolean.TYPE.isAssignableFrom(cls)) {
-            return cs.getBoolean(index);
+            return checkNull(cs, cs.getBoolean(index));
         } else if (java.util.Date.class.isAssignableFrom(cls)) {
             if (Date.class.isAssignableFrom(cls)) {
                 return cs.getDate(index);
