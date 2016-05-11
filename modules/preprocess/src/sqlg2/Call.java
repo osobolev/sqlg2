@@ -17,7 +17,7 @@ import java.lang.annotation.Target;
  * /**
  *  * BEGIN
  *  *   SELECT name, value
- *  *     INTO :>name, :>value
+ *  *     INTO :&gt;name, :&gt;value
  *  *     FROM table
  *  *    WHERE id = :idParam
  *  * END;

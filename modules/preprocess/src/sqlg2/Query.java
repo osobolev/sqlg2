@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
  * <p>
  * You can use query pieces to build larger queries manually using {@link sqlg2.db.QueryBuilder} or methods
  * like {@link sqlg2.db.QueryPiece#add(sqlg2.db.QueryPiece...)}, but also you can reference query pieces in
- * javadoc comments used for queries as <code>&piece</code>, example:
+ * javadoc comments used for queries as <code>&amp;piece</code>, example:
  * <pre>
  * /**
  *  * SELECT name, value
@@ -34,7 +34,7 @@ import java.lang.annotation.Target;
  *  *&#47;
  * &#64;Prepare PreparedStatement stmt = null;
  * </pre>
- * In this way you can combine multiple pieces into one query. &-substitution works not only for QueryPieces, but
+ * In this way you can combine multiple pieces into one query. &amp;-substitution works not only for QueryPieces, but
  * also for Strings:
  * <pre>
  * String table = "table";

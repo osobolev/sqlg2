@@ -17,7 +17,7 @@ public final class ColumnInfo {
      * @param name name of the Java field for this DB column
      * @param fetchMethod method to retrieve info from result set for this DB column. It is a string containing
      * full text of a call using <code>resultSetVar</code> and <code>baseVar</code> parameters of
-     * {@link Mapper#getFields(java.sql.ResultSetMetaData, String, String, boolean, SqlChecker)} method.
+     * {@link Mapper#getFields(java.sql.ResultSetMetaData, String, String, boolean)} method.
      * <p>
      * Example: to retrieve <code>int</code> value from the first column of a result set you can create following
      * string for <code>fetchMethod</code> value:

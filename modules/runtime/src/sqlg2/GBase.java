@@ -1437,7 +1437,7 @@ public class GBase implements ISimpleTransaction {
 
     /**
      * Create row instance by row type class; class should have {@link EditableRowType} annotation.
-     * Returns <code>null</null) at preprocess time (because implementation class isn't generated yet).
+     * Returns <code>null</code>) at preprocess time (because implementation class isn't generated yet).
      */
     @SuppressWarnings("unchecked")
     public final <T> T newRow(Class<T> cls) {

@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * Annotation for local variables marking that variable's value should be taken
  * from comments (as a string). When extracting string from comments following
  * replacements are made:
- * <code>"a &b c"</code>
+ * <code>"a &amp;b c"</code>
  * to
  * <code>"a " + b + " c"</code>
  * (i.e. variable substitution is performed).
