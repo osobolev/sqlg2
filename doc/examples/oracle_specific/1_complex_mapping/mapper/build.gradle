@@ -12,7 +12,6 @@ sourceSets.main.java.srcDirs = ['src']
 compileJava.options.encoding = 'UTF-8'
 
 dependencies {
-    println driverClasspath
     compile 'com.github.osobolev.sqlg2:sqlg2-full:4.0'
     compile driverClasspath
 }
