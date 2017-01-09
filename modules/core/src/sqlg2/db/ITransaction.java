@@ -11,7 +11,7 @@ import java.sql.SQLException;
  * (else resource leak may occur).
  * If single-connection pool is used, then you cannot call something from other transactions
  * (even from simple transactions) during active transaction - they have to wait until single
- * DB connection is released by the current transaction. In most cases voilation of this rule
+ * DB connection is released by the current transaction. In most cases violation of this rule
  * leads to deadlock, so if you are using ITransaction then all data access interfaces should
  * by obtained from it, not from other transactions.
  */

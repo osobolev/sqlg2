@@ -17,7 +17,6 @@ public abstract class CustomMapper<T> {
      * {@link sqlg2.Mapper#getFields} sets {@link sqlg2.ColumnInfo#special} flag. If custom-mapped class
      * is used only for parameters then this method can do anything.
      *
-     *
      * @param rs result set
      * @param from first column of result set
      * @param to last column of result set

@@ -2,7 +2,7 @@ ext {
 ///*
     // Embedded Derby:
     def home = System.getProperty('user.home')
-    jdbcUrl = "jdbc:derby:${home}/TestDB;create = true"
+    jdbcUrl = "jdbc:derby:${home}/TestDB;create=true"
     username = ''
     password = ''
     jdbcDriver = 'org.apache.derby.jdbc.EmbeddedDriver'

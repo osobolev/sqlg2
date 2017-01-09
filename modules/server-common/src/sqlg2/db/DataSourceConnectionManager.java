@@ -17,11 +17,11 @@ public class DataSourceConnectionManager implements ConnectionManager {
         this.dataSource = dataSource;
     }
 
-    public synchronized Connection allocConnection() throws SQLException {
+    public Connection allocConnection() throws SQLException {
         return dataSource.getConnection();
     }
 
-    public synchronized void releaseConnection(Connection conn) throws SQLException {
+    public void releaseConnection(Connection conn) throws SQLException {
         conn.close();
     }
 
@@ -37,6 +37,6 @@ public class DataSourceConnectionManager implements ConnectionManager {
     public void rollback(Connection conn) throws SQLException {
     }
 
-    public synchronized void close() {
+    public void close() {
     }
 }
