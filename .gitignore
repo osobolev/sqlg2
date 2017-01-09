@@ -3,8 +3,9 @@ uiDesigner.xml
 out/
 build/
 .gradle/
-/lib/
+lib/
 /distr/
 /doc/api/
 *.log
 wrapper/
+!/gradle/wrapper/
