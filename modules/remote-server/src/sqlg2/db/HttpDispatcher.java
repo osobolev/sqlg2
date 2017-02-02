@@ -161,6 +161,14 @@ public final class HttpDispatcher {
         transactions.remove(id.transactionId);
     }
 
+    private void log(DBInterface db, Throwable ex) {
+        if (db != null) {
+            db.getLogger().error(ex);
+        } else {
+            lw.globals.getLogger().error(ex);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     private Object dispatch(InputStream is, String hostName) throws Throwable {
         DBInterface db = null;
@@ -212,13 +220,10 @@ public final class HttpDispatcher {
         } catch (RemoteException ex) {
             throw ex;
         } catch (Throwable ex) {
-            if (db != null) {
-                db.getLogger().error(ex);
-            } else {
-                lw.globals.getLogger().error(ex);
-            }
+            log(db, ex);
             throw new RemoteException(ex);
         }
+        log(db, invocationError);
         throw invocationError;
     }
 
