@@ -92,7 +92,6 @@ final class GTestImpl extends GTest {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public <T> T getNullInterface(Class<T> iface) {
         Object ret = Proxy.newProxyInstance(
             iface.getClassLoader(),
@@ -103,7 +102,7 @@ final class GTestImpl extends GTest {
                 }
             }
         );
-        return (T) ret;
+        return iface.cast(ret);
     }
 
     public Object getTestObject(Class<?> paramType) {

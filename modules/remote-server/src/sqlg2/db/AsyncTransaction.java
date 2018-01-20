@@ -13,9 +13,8 @@ final class AsyncTransaction implements ISimpleTransaction {
         this.db = db;
     }
 
-    @SuppressWarnings("unchecked")
     public <T extends IDBCommon> T getInterface(final Class<T> iface) {
-        return (T) Proxy.newProxyInstance(iface.getClassLoader(), new Class[] {iface}, new InvocationHandler() {
+        return iface.cast(Proxy.newProxyInstance(iface.getClassLoader(), new Class[] {iface}, new InvocationHandler() {
             public Object invoke(Object proxy, final Method method, final Object[] args) throws Throwable {
                 Thread thread = new Thread(new Runnable() {
                     public void run() {
@@ -37,6 +36,6 @@ final class AsyncTransaction implements ISimpleTransaction {
                 thread.start();
                 return null;
             }
-        });
+        }));
     }
 }

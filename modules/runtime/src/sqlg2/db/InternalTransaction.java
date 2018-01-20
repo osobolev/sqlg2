@@ -53,9 +53,8 @@ public abstract class InternalTransaction {
     /**
      * Returns local business interface implementation for current transaction
      */
-    @SuppressWarnings("unchecked")
     protected final <T extends IDBCommon> T getInterface(Class<T> iface, boolean inline) {
-        return (T) getInstance(iface, inline);
+        return iface.cast(getInstance(iface, inline));
     }
 
     public final <T extends IDBCommon> T getInlineInterface(Class<T> iface) {

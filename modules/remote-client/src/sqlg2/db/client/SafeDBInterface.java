@@ -127,9 +127,8 @@ public final class SafeDBInterface implements IRemoteDBInterface {
         return getDb().getCurrentSession();
     }
 
-    @SuppressWarnings("unchecked")
     <T extends IDBCommon> T wrap(Class<T> iface, final SafeWrapper<T> obj) {
-        return (T) Proxy.newProxyInstance(iface.getClassLoader(), new Class<?>[] {iface}, new InvocationHandler() {
+        return iface.cast(Proxy.newProxyInstance(iface.getClassLoader(), new Class<?>[] {iface}, new InvocationHandler() {
             public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
                 try {
                     return method.invoke(obj.get(), args);
@@ -141,7 +140,7 @@ public final class SafeDBInterface implements IRemoteDBInterface {
                     throw ex;
                 }
             }
-        });
+        }));
     }
 
     private void resetConnection(boolean unrecoverable) {

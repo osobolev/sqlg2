@@ -489,7 +489,6 @@ public class GBase implements ISimpleTransaction {
             throw new SQLException("Too many rows");
     }
 
-    @SuppressWarnings("unchecked")
     private <T> T singleOrOptionalRowQueryReturningT(PreparedStatement stmt, boolean optional, boolean checkNull,
                                                      Class<T> cls, boolean special, Converter<T> converter) throws SQLException {
         ResultSet rs = null;
@@ -497,7 +496,7 @@ public class GBase implements ISimpleTransaction {
             rs = stmt.executeQuery();
             if (test != null) {
                 test.checkOneColumn(rs, cls, special);
-                return special ? null : (T) test.getTestObject(cls);
+                return special ? null : cls.cast(test.getTestObject(cls));
             } else {
                 if (!checkNext(rs, optional))
                     return null;
@@ -904,11 +903,10 @@ public class GBase implements ISimpleTransaction {
 
     ///////////////////////////////// Class statements /////////////////////////////////
 
-    @SuppressWarnings("unchecked")
     private <T> T fetchFromResultSet(Class<T> cls, ResultSet rs) throws SQLException {
         Object[] params = {rs, this};
         RowTypeFactory factory = lwb.findFactory(cls, getClass());
-        return (T) factory.call(params);
+        return cls.cast(factory.call(params));
     }
 
     private <T> T singleOrOptionalRowQuery(PreparedStatement stmt, boolean optional, Class<T> cls) throws SQLException {
@@ -976,12 +974,11 @@ public class GBase implements ISimpleTransaction {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private <T> void getResultSet(Class<T> cls, ResultSet rs, List<T> result) throws SQLException {
         Object[] params = {rs, this};
         RowTypeFactory factory = lwb.findFactory(cls, getClass());
         while (rs.next()) {
-            T row = (T) factory.call(params);
+            T row = cls.cast(factory.call(params));
             result.add(row);
         }
     }
@@ -1439,13 +1436,12 @@ public class GBase implements ISimpleTransaction {
      * Create row instance by row type class; class should have {@link EditableRowType} annotation.
      * Returns <code>null</code>) at preprocess time (because implementation class isn't generated yet).
      */
-    @SuppressWarnings("unchecked")
     public final <T> T newRow(Class<T> cls) {
         if (test != null)
             return null;
         Constructor<?> cons = LocalWrapperBase.getDefaultConstructor(cls);
         try {
-            return (T) cons.newInstance();
+            return cls.cast(cons.newInstance());
         } catch (Exception ex) {
             throw new SQLGException(ex.getMessage(), ex);
         }
