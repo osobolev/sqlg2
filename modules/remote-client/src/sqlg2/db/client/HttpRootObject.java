@@ -16,14 +16,14 @@ final class HttpRootObject {
 
     private final URL url;
     private final Proxy proxy;
-    private ISerializer serializer = new JavaSerializer();
+    private IClientSerializer serializer = new ClientJavaSerializer();
 
     HttpRootObject(URL url, Proxy proxy) {
         this.url = url;
         this.proxy = proxy;
     }
 
-    void setSerializer(ISerializer serializer) {
+    void setSerializer(IClientSerializer serializer) {
         this.serializer = serializer;
     }
 
@@ -53,12 +53,12 @@ final class HttpRootObject {
             final HttpURLConnection conn = getConnection();
             try {
                 conn.connect();
-                ISerializer.StreamSource<OutputStream> oss = new ISerializer.StreamSource<OutputStream>() {
+                IClientSerializer.StreamSource<OutputStream> oss = new IClientSerializer.StreamSource<OutputStream>() {
                     public OutputStream open() throws IOException {
                         return conn.getOutputStream();
                     }
                 };
-                ISerializer.StreamSource<InputStream> iss = new ISerializer.StreamSource<InputStream>() {
+                IClientSerializer.StreamSource<InputStream> iss = new IClientSerializer.StreamSource<InputStream>() {
                     public InputStream open() throws IOException {
                         return conn.getInputStream();
                     }

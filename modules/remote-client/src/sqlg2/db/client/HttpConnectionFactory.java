@@ -6,7 +6,6 @@ import sqlg2.db.RemoteException;
 import sqlg2.db.remote.HttpCommand;
 import sqlg2.db.remote.HttpDBInterfaceInfo;
 import sqlg2.db.remote.HttpId;
-import sqlg2.db.remote.ISerializer;
 
 import java.net.*;
 import java.sql.SQLException;
@@ -28,7 +27,7 @@ public final class HttpConnectionFactory implements IConnectionFactory {
         this.rootObject = new HttpRootObject(url, proxy);
     }
 
-    public void setSerializer(ISerializer serializer) {
+    public void setSerializer(IClientSerializer serializer) {
         rootObject.setSerializer(serializer);
     }
 

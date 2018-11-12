@@ -1,6 +1,9 @@
 package sqlg2.db;
 
-import sqlg2.db.remote.*;
+import sqlg2.db.remote.HttpCommand;
+import sqlg2.db.remote.HttpDBInterfaceInfo;
+import sqlg2.db.remote.HttpId;
+import sqlg2.db.remote.WatcherThread;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,7 +30,7 @@ public final class HttpDispatcher {
 
     private final String application;
     private final LocalConnectionFactory lw;
-    private ISerializer serializer = new JavaSerializer();
+    private IServerSerializer serializer = new ServerJavaSerializer();
     private final WatcherThread watcher;
     private final ConcurrentMap<Long, ITransaction> transactions = new ConcurrentHashMap<Long, ITransaction>();
 
@@ -136,7 +139,7 @@ public final class HttpDispatcher {
         this.watcher.runThread();
     }
 
-    public void setSerializer(ISerializer serializer) {
+    public void setSerializer(IServerSerializer serializer) {
         this.serializer = serializer;
     }
 
@@ -227,7 +230,7 @@ public final class HttpDispatcher {
      * @param os       output data
      */
     public void dispatch(final String hostName, InputStream is, OutputStream os) throws IOException {
-        ISerializer.ServerCall call = new ISerializer.ServerCall() {
+        IServerSerializer.ServerCall call = new IServerSerializer.ServerCall() {
             public Object call(HttpId id, HttpCommand command, Class<? extends IDBCommon> iface, String method, Class<?>[] paramTypes, Object[] params) throws Throwable {
                 return dispatch(id, command, iface, method, paramTypes, params, hostName);
             }
@@ -235,7 +238,7 @@ public final class HttpDispatcher {
         serializer.serverToClient(is, call, os);
     }
 
-    public static void writeResponse(ISerializer serializer, OutputStream os, Object result, Throwable error) throws IOException {
+    public static void writeResponse(IServerSerializer serializer, OutputStream os, Object result, Throwable error) throws IOException {
         serializer.sendError(os, error);
     }
 
