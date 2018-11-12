@@ -2,7 +2,9 @@ package sqlg2.db;
 
 import sqlg2.db.remote.*;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.SQLException;
@@ -25,6 +27,7 @@ public final class HttpDispatcher {
 
     private final String application;
     private final LocalConnectionFactory lw;
+    private ISerializer serializer = new JavaSerializer();
     private final WatcherThread watcher;
     private final ConcurrentMap<Long, ITransaction> transactions = new ConcurrentHashMap<Long, ITransaction>();
 
@@ -58,7 +61,7 @@ public final class HttpDispatcher {
                 ITransaction trans = db.getTransaction();
                 long transactionId = transactionCount.getAndIncrement();
                 transactions.put(transactionId, trans);
-                return new HttpTransaction(id.createTransaction(transactionId), null);
+                return id.createTransaction(transactionId);
             }
         });
         actions.put(HttpCommand.PING, new HttpAction() {
@@ -133,13 +136,17 @@ public final class HttpDispatcher {
         this.watcher.runThread();
     }
 
-    private HttpDBInterface openConnection(HttpId id, String user, String password, String hostName) throws SQLException {
+    public void setSerializer(ISerializer serializer) {
+        this.serializer = serializer;
+    }
+
+    private HttpDBInterfaceInfo openConnection(HttpId id, String user, String password, String hostName) throws SQLException {
         DBInterface db = lw.createConnection(user, password, hostName, false);
         String sessionId = db.sessionLongId;
         String login = db.getUserLogin();
         String host = db.getUserHost();
         Object userObject = db.getUserObject();
-        return new HttpDBInterface(id.createSession(sessionId), null, login, host, userObject);
+        return new HttpDBInterfaceInfo(id.createSession(sessionId), login, host, userObject);
     }
 
     private void checkApplication(HttpId id) {
@@ -170,29 +177,14 @@ public final class HttpDispatcher {
     }
 
     @SuppressWarnings("unchecked")
-    private Object dispatch(InputStream is, String hostName) throws Throwable {
+    private Object dispatch(HttpId id, HttpCommand command,
+                            Class<? extends IDBCommon> iface, String method, Class<?>[] paramTypes, Object[] params,
+                            String hostName) throws Throwable {
         DBInterface db = null;
         Throwable invocationError;
         try {
-            HttpId id;
-            HttpCommand command;
-            Class<? extends IDBCommon> iface;
-            String method;
-            Class<?>[] paramTypes;
-            Object[] params;
-            ObjectInputStream ois = HttpId.readData(is);
-            try {
-                id = (HttpId) ois.readObject();
-                if (id.sessionId != null) {
-                    db = checkSession(id);
-                }
-                command = (HttpCommand) ois.readObject();
-                iface = (Class<? extends IDBCommon>) ois.readObject();
-                method = (String) ois.readObject();
-                paramTypes = (Class<?>[]) ois.readObject();
-                params = (Object[]) ois.readObject();
-            } finally {
-                ois.close();
+            if (id.sessionId != null) {
+                db = checkSession(id);
             }
             if (command == HttpCommand.INVOKE || command == HttpCommand.INVOKE_ASYNC) {
                 Object impl;
@@ -231,28 +223,20 @@ public final class HttpDispatcher {
      * Dispatch of HTTP PUT request.
      *
      * @param hostName host name of client from which call originated
-     * @param is input data
-     * @param os output data
+     * @param is       input data
+     * @param os       output data
      */
-    public void dispatch(String hostName, InputStream is, OutputStream os) throws IOException {
-        Object result = null;
-        Throwable error = null;
-        try {
-            result = dispatch(is, hostName);
-        } catch (Throwable ex) {
-            error = ex;
-        }
-        writeResponse(os, result, error);
+    public void dispatch(final String hostName, InputStream is, OutputStream os) throws IOException {
+        ISerializer.ServerCall call = new ISerializer.ServerCall() {
+            public Object call(HttpId id, HttpCommand command, Class<? extends IDBCommon> iface, String method, Class<?>[] paramTypes, Object[] params) throws Throwable {
+                return dispatch(id, command, iface, method, paramTypes, params, hostName);
+            }
+        };
+        serializer.serverToClient(is, call, os);
     }
 
-    public static void writeResponse(OutputStream os, Object result, Throwable error) throws IOException {
-        ObjectOutputStream oos = HttpId.writeData(os);
-        try {
-            oos.writeObject(result);
-            oos.writeObject(error);
-        } finally {
-            oos.close();
-        }
+    public static void writeResponse(ISerializer serializer, OutputStream os, Object result, Throwable error) throws IOException {
+        serializer.sendError(os, error);
     }
 
     /**

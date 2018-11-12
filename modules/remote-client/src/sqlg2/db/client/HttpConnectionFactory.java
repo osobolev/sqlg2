@@ -3,33 +3,39 @@ package sqlg2.db.client;
 import sqlg2.db.IConnectionFactory;
 import sqlg2.db.IRemoteDBInterface;
 import sqlg2.db.RemoteException;
-import sqlg2.db.remote.*;
+import sqlg2.db.remote.HttpCommand;
+import sqlg2.db.remote.HttpDBInterfaceInfo;
+import sqlg2.db.remote.HttpId;
+import sqlg2.db.remote.ISerializer;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.*;
 import java.sql.SQLException;
 
 /**
  * {@link IConnectionFactory} implementation for remote calls.
  */
-public final class HttpConnectionFactory extends HttpProxy implements IConnectionFactory {
+public final class HttpConnectionFactory implements IConnectionFactory {
+
+    private final HttpId id;
+    private final HttpRootObject rootObject;
 
     public HttpConnectionFactory(String url, Proxy proxy, String application) throws URISyntaxException, MalformedURLException {
         this(new URI(url).normalize().toURL(), proxy, application);
     }
 
     public HttpConnectionFactory(URL url, Proxy proxy, String application) {
-        super(new HttpId(application));
-        setEndpoint(url, proxy);
+        this.id = new HttpId(application);
+        this.rootObject = new HttpRootObject(url, proxy);
+    }
+
+    public void setSerializer(ISerializer serializer) {
+        rootObject.setSerializer(serializer);
     }
 
     public IRemoteDBInterface openConnection(String user, String password) throws SQLException {
         try {
-            HttpDBInterface db = (HttpDBInterface) httpInvoke(HttpCommand.OPEN, user, password);
-            db.setEndpoint(this);
-            return db;
+            HttpDBInterfaceInfo info = rootObject.httpInvoke(HttpDBInterfaceInfo.class, HttpCommand.OPEN, id, user, password);
+            return new HttpDBInterface(rootObject, info);
         } catch (SQLException ex) {
             throw ex;
         } catch (RuntimeException ex) {
@@ -39,18 +45,7 @@ public final class HttpConnectionFactory extends HttpProxy implements IConnectio
         }
     }
 
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-        out.writeObject(getEndpoint());
-    }
-
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        Endpoint endpoint = (Endpoint) in.readObject();
-        setEndpoint(endpoint);
-    }
-
     public URL getUrl() {
-        return getEndpoint().getUrl();
+        return rootObject.getUrl();
     }
 }

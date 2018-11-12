@@ -1,38 +1,34 @@
-package sqlg2.db.remote;
+package sqlg2.db.client;
 
 import sqlg2.db.*;
+import sqlg2.db.remote.HttpCommand;
+import sqlg2.db.remote.HttpDBInterfaceInfo;
+import sqlg2.db.remote.HttpId;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.sql.SQLException;
 
-public final class HttpDBInterface extends HttpProxy implements IRemoteDBInterface {
+final class HttpDBInterface implements IRemoteDBInterface {
 
-    private final String userLogin;
-    private final String userHost;
-    private final Object userObject;
+    private final HttpRootObject rootObject;
+    private final HttpDBInterfaceInfo info;
 
-    public HttpDBInterface(HttpId id, HttpProxy root, String userLogin, String userHost, Object userObject) {
-        super(id, root);
-        this.userLogin = userLogin;
-        this.userHost = userHost;
-        this.userObject = userObject;
+    HttpDBInterface(HttpRootObject rootObject, HttpDBInterfaceInfo info) {
+        this.rootObject = rootObject;
+        this.info = info;
     }
 
     public ISimpleTransaction getSimpleTransaction() {
-        return new HttpSimpleTransaction(id, this, HttpCommand.INVOKE);
+        return new HttpSimpleTransaction(rootObject, info.id, HttpCommand.INVOKE);
     }
 
     public ISimpleTransaction getAsyncTransaction() {
-        return new HttpSimpleTransaction(id, this, HttpCommand.INVOKE_ASYNC);
+        return new HttpSimpleTransaction(rootObject, info.id, HttpCommand.INVOKE_ASYNC);
     }
 
     public ITransaction getTransaction() throws SQLException {
         try {
-            HttpTransaction trans = (HttpTransaction) httpInvoke(HttpCommand.GET_TRANSACTION);
-            trans.setEndpoint(this);
-            return trans;
+            HttpId transactionId = rootObject.httpInvoke(HttpId.class, HttpCommand.GET_TRANSACTION, info.id);
+            return new HttpTransaction(rootObject, transactionId);
         } catch (SQLException ex) {
             throw ex;
         } catch (RuntimeException ex) {
@@ -44,7 +40,7 @@ public final class HttpDBInterface extends HttpProxy implements IRemoteDBInterfa
 
     public void ping() {
         try {
-            httpInvoke(HttpCommand.PING);
+            rootObject.httpInvoke(Void.TYPE, HttpCommand.PING, info.id);
         } catch (RuntimeException ex) {
             throw ex;
         } catch (Throwable ex) {
@@ -54,7 +50,7 @@ public final class HttpDBInterface extends HttpProxy implements IRemoteDBInterfa
 
     public void close() {
         try {
-            httpInvoke(HttpCommand.CLOSE);
+            rootObject.httpInvoke(Void.TYPE, HttpCommand.CLOSE, info.id);
         } catch (RuntimeException ex) {
             throw ex;
         } catch (Throwable ex) {
@@ -63,20 +59,20 @@ public final class HttpDBInterface extends HttpProxy implements IRemoteDBInterfa
     }
 
     public String getUserLogin() {
-        return userLogin;
+        return info.userLogin;
     }
 
     public String getUserHost() {
-        return userHost;
+        return info.userHost;
     }
 
     public Object getUserObject() {
-        return userObject;
+        return info.userObject;
     }
 
     public SessionInfo[] getActiveSessions() {
         try {
-            return (SessionInfo[]) httpInvoke(HttpCommand.GET_SESSIONS);
+            return rootObject.httpInvoke(SessionInfo[].class, HttpCommand.GET_SESSIONS, info.id);
         } catch (RuntimeException ex) {
             throw ex;
         } catch (Throwable ex) {
@@ -86,7 +82,7 @@ public final class HttpDBInterface extends HttpProxy implements IRemoteDBInterfa
 
     public void killSession(String sessionLongId) {
         try {
-            httpInvoke(HttpCommand.KILL_SESSION, sessionLongId);
+            rootObject.httpInvoke(Void.TYPE, HttpCommand.KILL_SESSION, info.id, sessionLongId);
         } catch (RuntimeException ex) {
             throw ex;
         } catch (Throwable ex) {
@@ -96,22 +92,11 @@ public final class HttpDBInterface extends HttpProxy implements IRemoteDBInterfa
 
     public SessionInfo getCurrentSession() {
         try {
-            return (SessionInfo) httpInvoke(HttpCommand.GET_CURRENT_SESSION);
+            return rootObject.httpInvoke(SessionInfo.class, HttpCommand.GET_CURRENT_SESSION, info.id);
         } catch (RuntimeException ex) {
             throw ex;
         } catch (Throwable ex) {
             throw new RemoteException(ex);
         }
-    }
-
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-        out.writeObject(getEndpoint());
-    }
-
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        Endpoint endpoint = (Endpoint) in.readObject();
-        setEndpoint(endpoint);
     }
 }

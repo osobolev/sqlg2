@@ -1,19 +1,21 @@
-package sqlg2.db.remote;
+package sqlg2.db.client;
 
 import sqlg2.db.ITransaction;
 import sqlg2.db.RemoteException;
+import sqlg2.db.remote.HttpCommand;
+import sqlg2.db.remote.HttpId;
 
 import java.sql.SQLException;
 
-public final class HttpTransaction extends HttpSimpleTransaction implements ITransaction {
+final class HttpTransaction extends HttpSimpleTransaction implements ITransaction {
 
-    public HttpTransaction(HttpId id, HttpProxy root) {
-        super(id, root, HttpCommand.INVOKE);
+    HttpTransaction(HttpRootObject rootObject, HttpId id) {
+        super(rootObject, id, HttpCommand.INVOKE);
     }
 
     public void rollback() throws SQLException {
         try {
-            httpInvoke(HttpCommand.ROLLBACK);
+            rootObject.httpInvoke(Void.TYPE, HttpCommand.ROLLBACK, id);
         } catch (SQLException ex) {
             throw ex;
         } catch (RuntimeException ex) {
@@ -25,7 +27,7 @@ public final class HttpTransaction extends HttpSimpleTransaction implements ITra
 
     public void commit() throws SQLException {
         try {
-            httpInvoke(HttpCommand.COMMIT);
+            rootObject.httpInvoke(Void.TYPE, HttpCommand.COMMIT, id);
         } catch (SQLException ex) {
             throw ex;
         } catch (RuntimeException ex) {

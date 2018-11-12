@@ -4,7 +4,6 @@ import sqlg2.db.Impl;
 import sqlg2.db.SQLGException;
 import sqlg2.db.TypedList;
 
-import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.sql.*;
@@ -13,7 +12,7 @@ import java.sql.*;
  * This class represents query parameter (both IN or OUT). Parameter values are usually obtained by
  * {@link GBase#in} or {@link GBase#out} methods.
  */
-public final class Parameter implements Serializable {
+public final class Parameter {
 
     private final Object inputValue;
     private final boolean input;

@@ -186,17 +186,21 @@ public class LocalWrapperBase {
         return baseName + "$" + getNestedImplName(name.substring(q + 1));
     }
 
+    public static Class<?> getRowImplClass(Class<?> cls) throws ClassNotFoundException {
+        Class<?> parent = cls.getDeclaringClass();
+        if (parent == null) {
+            return cls;
+        } else {
+            String implName = getImplName(parent, cls);
+            return loadClass(implName);
+        }
+    }
+
     static Constructor<?> getDefaultConstructor(Class<?> cls) {
         Throwable cause;
         try {
-            Class<?> parent = cls.getDeclaringClass();
-            if (parent == null) {
-                return cls.getConstructor();
-            } else {
-                String implName = getImplName(parent, cls);
-                Class<?> impl = loadClass(implName);
-                return impl.getConstructor();
-            }
+            Class<?> impl = getRowImplClass(cls);
+            return impl.getConstructor();
         } catch (ClassNotFoundException cnfe) {
             cause = cnfe;
         } catch (NoSuchMethodException nsme) {
