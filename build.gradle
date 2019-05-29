@@ -1,3 +1,7 @@
+buildscript {
+    apply from: 'properties.gradle'
+}
+
 allprojects {
     group = 'com.github.osobolev.sqlg2'
     version = '4.0'
@@ -6,9 +10,6 @@ allprojects {
 subprojects {
     apply plugin: 'java'
     apply plugin: 'maven'
-
-    sourceCompatibility = '1.5'
-    targetCompatibility = '1.5'
 
     compileJava.options.encoding = 'UTF-8'
 
@@ -55,10 +56,18 @@ def buildSource(dirs) {
 }
 
 project(':sqlg2-client') {
+    sourceCompatibility = '1.5'
+    targetCompatibility = '1.5'
+    compileJava.options.bootClasspath = "${jdk5}/jre/lib/rt.jar"
+
     sourceSets.main.java.srcDirs = buildSource(['core', 'remote-common', 'remote-client']) + ['gbase-stub']
 }
 
 project(':sqlg2-full') {
+    sourceCompatibility = '1.6'
+    targetCompatibility = '1.6'
+    compileJava.options.bootClasspath = "${jdk5}/jre/lib/rt.jar"
+
     sourceSets.main.java.srcDirs = buildSource(['core', 'runtime', 'remote-common', 'server-common', 'remote-server', 'remote-client', 'local-server', 'preprocess'])
 
     configurations { antlrLib }
@@ -81,14 +90,25 @@ project(':sqlg2-full') {
 }
 
 project(':sqlg2-local') {
+    sourceCompatibility = '1.5'
+    targetCompatibility = '1.5'
+    compileJava.options.bootClasspath = "${jdk5}/jre/lib/rt.jar"
+
     sourceSets.main.java.srcDirs = buildSource(['core', 'runtime', 'server-common', 'local-server'])
 }
 
 project(':sqlg2-runtime') {
+    sourceCompatibility = '1.5'
+    targetCompatibility = '1.5'
+    compileJava.options.bootClasspath = "${jdk5}/jre/lib/rt.jar"
+
     sourceSets.main.java.srcDirs = buildSource(['core', 'runtime', 'remote-common', 'server-common', 'remote-server', 'remote-client', 'local-server'])
 }
 
 project(':sqlg2-gwt') {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+
     compileJava { onlyIf { false } }
 
     jar {
