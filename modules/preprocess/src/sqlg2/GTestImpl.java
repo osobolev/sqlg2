@@ -109,17 +109,46 @@ final class GTestImpl extends GTest {
         return mapper.getTestObject(paramType);
     }
 
-    public void getFields(Class<?> retClass, ResultSet rs, boolean meta) throws SQLException {
-        ResultSetMetaData rsmd = rs.getMetaData();
-        columns = mapper.getFields(rsmd, RESULT_SET, BASE, meta);
+    public void getFields(Class<?> retClass, PreparedStatement stmt, ResultSet rs, boolean meta) throws SQLException {
+        ResultSet toClose = null;
+        try {
+            ResultSetMetaData rsmd = null;
+            if (stmt != null) {
+                try {
+                    rsmd = stmt.getMetaData();
+                } catch (SQLException ex) {
+                    // ignore
+                }
+            }
+            if (rsmd == null) {
+                if (rs == null) {
+                    if (stmt == null) {
+                        throw new SQLGException("Both statement and result set are null!");
+                    }
+                    toClose = stmt.executeQuery();
+                    rsmd = toClose.getMetaData();
+                } else {
+                    rsmd = rs.getMetaData();
+                }
+            }
+            columns = mapper.getFields(rsmd, RESULT_SET, BASE, meta);
+        } finally {
+            if (toClose != null) {
+                try {
+                    toClose.close();
+                } catch (SQLException ex) {
+                    // ignore
+                }
+            }
+        }
         this.meta = meta;
         if (retClass != null) {
             returnClass = retClass;
         }
     }
 
-    private ColumnInfo getOneColumn(ResultSet rs) throws SQLException {
-        getFields(null, rs, false);
+    private ColumnInfo getOneColumn(PreparedStatement stmt, ResultSet rs) throws SQLException {
+        getFields(null, stmt, rs, false);
         if (columns == null || columns.size() != 1) {
             throw new SQLException("More than one column in result set");
         }
@@ -129,8 +158,8 @@ final class GTestImpl extends GTest {
         return col1;
     }
 
-    public void checkOneColumn(ResultSet rs, Class<?> cls, boolean special) throws SQLException {
-        ColumnInfo col1 = getOneColumn(rs);
+    public void checkOneColumn(PreparedStatement stmt, ResultSet rs, Class<?> cls, boolean special) throws SQLException {
+        ColumnInfo col1 = getOneColumn(stmt, rs);
         if (special) {
             if (!col1.special)
                 throw new SQLException("Column is not of special type, but of " + col1.type.getCanonicalName());

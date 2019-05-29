@@ -6,6 +6,7 @@ import sqlg2.db.RuntimeMapper;
 
 import java.io.*;
 import java.lang.reflect.Method;
+import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.*;
@@ -260,7 +261,9 @@ final class Main extends Options {
                 } catch (ClassNotFoundException ex) {
                     throw Impl.wrap(ex);
                 }
-                GTestImpl.INSTANCE.init(DriverManager.getConnection(url, user, pass), checker, mapper, runtimeMapper, specific);
+                Connection connection = DriverManager.getConnection(url, user, pass);
+                connection.setAutoCommit(false);
+                GTestImpl.INSTANCE.init(connection, checker, mapper, runtimeMapper, specific);
                 inited = true;
             }
             String pack = getPackage(in[i]);

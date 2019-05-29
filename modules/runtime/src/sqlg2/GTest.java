@@ -52,9 +52,9 @@ public abstract class GTest {
 
     public abstract Object getTestObject(Class<?> paramType);
 
-    public abstract void getFields(Class<?> retClass, ResultSet rs, boolean meta) throws SQLException;
+    public abstract void getFields(Class<?> retClass, PreparedStatement stmt, ResultSet rs, boolean meta) throws SQLException;
 
-    public abstract void checkOneColumn(ResultSet rs, Class<?> cls, boolean special) throws SQLException;
+    public abstract void checkOneColumn(PreparedStatement stmt, ResultSet rs, Class<?> cls, boolean special) throws SQLException;
 
     public abstract void checkSql(String sql) throws SQLException;
 

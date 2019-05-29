@@ -495,7 +495,7 @@ public class GBase implements ISimpleTransaction {
         try {
             rs = stmt.executeQuery();
             if (test != null) {
-                test.checkOneColumn(rs, cls, special);
+                test.checkOneColumn(stmt, rs, cls, special);
                 return special ? null : cls.cast(test.getTestObject(cls));
             } else {
                 if (!checkNext(rs, optional))
@@ -527,10 +527,10 @@ public class GBase implements ISimpleTransaction {
         ResultSet rs = null;
         try {
             List<T> list = new ArrayList<T>();
-            rs = stmt.executeQuery();
             if (test != null) {
-                test.checkOneColumn(rs, special, special != null);
+                test.checkOneColumn(stmt, rs, special, special != null);
             } else {
+                rs = stmt.executeQuery();
                 while (rs.next()) {
                     list.add(converter.convert(rs));
                 }
@@ -912,11 +912,11 @@ public class GBase implements ISimpleTransaction {
     private <T> T singleOrOptionalRowQuery(PreparedStatement stmt, boolean optional, Class<T> cls) throws SQLException {
         ResultSet rs = null;
         try {
-            rs = stmt.executeQuery();
             if (test != null) {
-                test.getFields(cls, rs, false);
+                test.getFields(cls, stmt, rs, false);
                 return null;
             } else {
+                rs = stmt.executeQuery();
                 if (!checkNext(rs, optional))
                     return null;
                 T ret = fetchFromResultSet(cls, rs);
@@ -959,16 +959,15 @@ public class GBase implements ISimpleTransaction {
      */
     public final <T> List<T> multiRowQuery(PreparedStatement stmt, Class<T> cls) throws SQLException {
         ResultSet rs = null;
-        List<T> result = new ArrayList<T>();
         try {
-            rs = stmt.executeQuery();
+            List<T> result = new ArrayList<T>();
             if (test != null) {
-                test.getFields(cls, rs, false);
-                return result;
+                test.getFields(cls, stmt, rs, false);
             } else {
+                rs = stmt.executeQuery();
                 getResultSet(cls, rs, result);
-                return result;
             }
+            return result;
         } finally {
             close(rs, stmt);
         }
@@ -993,11 +992,11 @@ public class GBase implements ISimpleTransaction {
     public final <T> T metaRowQuery(PreparedStatement stmt, Class<T> cls) throws SQLException {
         ResultSet rs = null;
         try {
-            rs = stmt.executeQuery();
             if (test != null) {
-                test.getFields(cls, rs, true);
+                test.getFields(cls, stmt, rs, true);
                 return null;
             } else {
+                rs = stmt.executeQuery();
                 return fetchFromResultSet(cls, rs);
             }
         } finally {
@@ -1104,7 +1103,7 @@ public class GBase implements ISimpleTransaction {
                         executed = true;
                     }
                     ResultSet rs = (ResultSet) cs.getObject(j);
-                    test.getFields(type, rs, typedList.meta);
+                    test.getFields(type, null, rs, typedList.meta);
                 } else {
                     ResultSet rs = (ResultSet) cs.getObject(j);
                     try {
