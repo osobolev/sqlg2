@@ -2,25 +2,22 @@ package sqlg2.db.client;
 
 import sqlg2.db.IDBCommon;
 import sqlg2.db.RemoteException;
-import sqlg2.db.remote.*;
+import sqlg2.db.remote.HttpCommand;
+import sqlg2.db.remote.HttpId;
+import sqlg2.db.remote.HttpResult;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
-import java.net.HttpURLConnection;
-import java.net.Proxy;
-import java.net.URL;
 
 final class HttpRootObject {
 
-    private final URL url;
-    private final Proxy proxy;
+    private final IHttpClientFactory clientFactory;
     private IClientSerializer serializer = new ClientJavaSerializer();
 
-    HttpRootObject(URL url, Proxy proxy) {
-        this.url = url;
-        this.proxy = proxy;
+    HttpRootObject(IHttpClientFactory clientFactory) {
+        this.clientFactory = clientFactory;
     }
 
     void setSerializer(IClientSerializer serializer) {
@@ -32,42 +29,27 @@ final class HttpRootObject {
         return (T) httpInvoke(retType, command, id, null, null, null, params);
     }
 
-    URL getUrl() {
-        return url;
-    }
-
-    private HttpURLConnection getConnection() throws IOException {
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection(proxy);
-        conn.setDoOutput(true);
-        conn.setRequestMethod("POST");
-        conn.setConnectTimeout(3000);
-        conn.setUseCaches(false);
-        conn.setAllowUserInteraction(false);
-        return conn;
-    }
-
     Object httpInvoke(Type retType, HttpCommand command, HttpId id, Class<? extends IDBCommon> iface, String method, Class<?>[] paramTypes, Object[] params) throws Throwable {
         Object result;
         Throwable error;
         try {
-            final HttpURLConnection conn = getConnection();
+            final IHttpClient conn = clientFactory.getClient();
             try {
-                conn.connect();
                 IClientSerializer.StreamSource<OutputStream> oss = new IClientSerializer.StreamSource<OutputStream>() {
                     public OutputStream open() throws IOException {
-                        return conn.getOutputStream();
+                        return conn.toServer();
                     }
                 };
                 IClientSerializer.StreamSource<InputStream> iss = new IClientSerializer.StreamSource<InputStream>() {
                     public InputStream open() throws IOException {
-                        return conn.getInputStream();
+                        return conn.fromServer();
                     }
                 };
                 HttpResult httpResult = serializer.clientToServer(oss, id, command, iface, retType, method, paramTypes, params, iss);
                 result = httpResult.result;
                 error = httpResult.error;
             } finally {
-                conn.disconnect();
+                conn.close();
             }
         } catch (RuntimeException ex) {
             throw ex;
