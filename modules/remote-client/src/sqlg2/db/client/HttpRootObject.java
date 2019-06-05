@@ -6,9 +6,6 @@ import sqlg2.db.remote.HttpCommand;
 import sqlg2.db.remote.HttpId;
 import sqlg2.db.remote.HttpResult;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.reflect.Type;
 
 final class HttpRootObject {
@@ -33,19 +30,10 @@ final class HttpRootObject {
         Object result;
         Throwable error;
         try {
-            final IHttpClient conn = clientFactory.getClient();
+            IHttpClient conn = clientFactory.getClient();
             try {
-                IClientSerializer.StreamSource<OutputStream> oss = new IClientSerializer.StreamSource<OutputStream>() {
-                    public OutputStream open() throws IOException {
-                        return conn.toServer();
-                    }
-                };
-                IClientSerializer.StreamSource<InputStream> iss = new IClientSerializer.StreamSource<InputStream>() {
-                    public InputStream open() throws IOException {
-                        return conn.fromServer();
-                    }
-                };
-                HttpResult httpResult = serializer.clientToServer(oss, id, command, iface, retType, method, paramTypes, params, iss);
+                IClientSerializer.ReqRespProcessor processor = conn.getProcessor();
+                HttpResult httpResult = serializer.clientToServer(processor, id, command, iface, retType, method, paramTypes, params);
                 result = httpResult.result;
                 error = httpResult.error;
             } finally {

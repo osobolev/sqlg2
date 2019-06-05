@@ -12,12 +12,18 @@ import java.lang.reflect.Type;
 
 public interface IClientSerializer {
 
-    interface StreamSource<S> {
+    interface ReqRespConsumer {
 
-        S open() throws IOException;
+        void writeToServer(OutputStream os) throws IOException;
+
+        HttpResult readFromServer(InputStream is) throws IOException;
     }
 
-    HttpResult clientToServer(StreamSource<OutputStream> oss, HttpId id, HttpCommand command,
-                              Class<? extends IDBCommon> iface, Type retType, String method, Class<?>[] paramTypes, Object[] params,
-                              StreamSource<InputStream> iss) throws IOException;
+    interface ReqRespProcessor {
+
+        HttpResult process(ReqRespConsumer consumer) throws IOException;
+    }
+
+    HttpResult clientToServer(ReqRespProcessor processor, HttpId id, HttpCommand command,
+                              Class<? extends IDBCommon> iface, Type retType, String method, Class<?>[] paramTypes, Object[] params) throws IOException;
 }

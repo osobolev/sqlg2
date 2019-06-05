@@ -20,10 +20,9 @@ public final class ClientJavaSerializer extends BaseJavaSerializer implements IC
     public ClientJavaSerializer() {
     }
 
-    public HttpResult clientToServer(StreamSource<OutputStream> oss, HttpId id, HttpCommand command,
-                                     Class<? extends IDBCommon> iface, Type retType, String method, Class<?>[] paramTypes, Object[] params,
-                                     StreamSource<InputStream> iss) throws IOException {
-        boolean debug = onlyMethods ? method != null : true;
+    public HttpResult clientToServer(ReqRespProcessor processor, final HttpId id, final HttpCommand command,
+                                     final Class<? extends IDBCommon> iface, Type retType, final String method, final Class<?>[] paramTypes, final Object[] params) throws IOException {
+        final boolean debug = onlyMethods ? method != null : true;
         if (logger != null && debug) {
             if (method != null) {
                 logger.info(iface + "." + method + ": " + retType);
@@ -31,32 +30,40 @@ public final class ClientJavaSerializer extends BaseJavaSerializer implements IC
                 logger.info(command + ": " + retType);
             }
         }
-        OutputStream os = count(oss.open(), debug);
-        try {
-            ObjectOutputStream oos = writeData(os);
-            os = oos;
-            oos.writeObject(id);
-            oos.writeObject(command);
-            oos.writeObject(iface);
-            oos.writeObject(method);
-            oos.writeObject(paramTypes);
-            oos.writeObject(params);
-        } finally {
-            os.close();
-        }
-        InputStream is = count(iss.open(), debug);
-        try {
-            ObjectInputStream ois = readData(is);
-            is = ois;
-            Object result = ois.readObject();
-            Throwable error = (Throwable) ois.readObject();
-            return new HttpResult(result, error);
-        } catch (ClassNotFoundException ex) {
-            throw new UnrecoverableRemoteException(ex);
-        } catch (InvalidClassException ex) {
-            throw new UnrecoverableRemoteException(ex);
-        } finally {
-            is.close();
-        }
+        return processor.process(new ReqRespConsumer() {
+
+            public void writeToServer(OutputStream stream) throws IOException {
+                OutputStream os = count(stream, debug);
+                ObjectOutputStream oos = writeData(os);
+                try {
+                    oos.writeObject(id);
+                    oos.writeObject(command);
+                    oos.writeObject(iface);
+                    oos.writeObject(method);
+                    oos.writeObject(paramTypes);
+                    oos.writeObject(params);
+                } finally {
+                    oos.close();
+                }
+            }
+
+            public HttpResult readFromServer(InputStream stream) throws IOException {
+                InputStream is = count(stream, debug);
+                try {
+                    ObjectInputStream ois = readData(is);
+                    try {
+                        Object result = ois.readObject();
+                        Throwable error = (Throwable) ois.readObject();
+                        return new HttpResult(result, error);
+                    } finally {
+                        ois.close();
+                    }
+                } catch (ClassNotFoundException ex) {
+                    throw new UnrecoverableRemoteException(ex);
+                } catch (InvalidClassException ex) {
+                    throw new UnrecoverableRemoteException(ex);
+                }
+            }
+        });
     }
 }
