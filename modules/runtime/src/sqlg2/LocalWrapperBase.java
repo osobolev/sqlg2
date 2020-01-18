@@ -92,7 +92,7 @@ public class LocalWrapperBase {
 
     /**
      * Returns implementation class name for data access interface of given type.
-     * Example: pack.ITestDao -> pack.wrapper.LWTestDao
+     * Example: pack.ITestDao -&gt; pack.wrapper.LWTestDao
      *
      * @param iface data access interface
      */

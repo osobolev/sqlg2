@@ -1,7 +1,7 @@
 package sqlg2.db;
 
 /**
- * Utility for replacing substrings like &identifier to substitution strings.
+ * Utility for replacing substrings like &amp;identifier to substitution strings.
  */
 public final class QueryReplacer {
 
