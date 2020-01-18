@@ -1,5 +1,5 @@
 ext {
-/*
+///*
     // Embedded Derby:
     def home = System.getProperty('user.home')
     jdbcUrl = "jdbc:derby:${home}/TestDB;create=true"
@@ -9,7 +9,7 @@ ext {
     dbClass = 'sqlg2.db.specific.Generic'
     driverClasspath = 'org.apache.derby:derby:10.11.1.1'
     sqlScript = 'schema_derby.sql'
-*/
+//*/
 /*
     // Oracle:
     jdbcUrl = 'jdbc:oracle:thin:@localhost:1521:ST'
@@ -21,15 +21,15 @@ ext {
     sqlScript = 'schema_ora.sql'
     sqlDelimiter = '/'
 */
-///*
+/*
     // PostgreSQL:
-    jdbcUrl = 'jdbc:postgresql://localhost:5431/sqlg2'
+    jdbcUrl = 'jdbc:postgresql://localhost:5432/sqlg2'
     username = 'sqlg2'
     password = 'sqlg2'
     jdbcDriver = 'org.postgresql.Driver'
     dbClass = 'sqlg2.db.specific.Postgres'
     driverClasspath = 'org.postgresql:postgresql:42.2.9'
     sqlScript = 'schema_pg.sql'
-//*/
+*/
     doPreprocess = true
 }
