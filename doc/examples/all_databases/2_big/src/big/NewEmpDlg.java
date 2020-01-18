@@ -18,7 +18,7 @@ final class NewEmpDlg extends JDialog {
 
     private final JTextField tfJob = new JTextField(10);
     private final JTextField tfName = new JTextField(10);
-    private JComboBox chMgr;
+    private JComboBox<BigDAO.MgrRow> chMgr;
     private final JButton btnOk = new JButton("OK");
     private final JButton btnCancel = new JButton("Cancel");
 
@@ -43,9 +43,9 @@ final class NewEmpDlg extends JDialog {
         List<BigDAO.MgrRow> newManagers = new ArrayList<BigDAO.MgrRow>(managers);
         // Adding empty value - "no manager"
         newManagers.add(0, null);
-        BigDAO.MgrRow[] mgrArray = newManagers.toArray(new BigDAO.MgrRow[newManagers.size()]);
+        BigDAO.MgrRow[] mgrArray = newManagers.toArray(new BigDAO.MgrRow[0]);
         // Creating manager chooser ComboBox
-        chMgr = new JComboBox(mgrArray);
+        chMgr = new JComboBox<>(mgrArray);
         chMgr.setRenderer(new MgrRenderer());
 
         JPanel main = new JPanel();
