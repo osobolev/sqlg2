@@ -22,12 +22,28 @@ subprojects {
         }
     }
 
-    javadoc {
-        onlyIf {
-            project.name == 'sqlg2-full'
-        }
+    javadoc.enabled = false
+}
 
+project(':') {
+
+    task cleanExamples(type: GradleBuild) {
+        buildFile = file('doc/examples/build.gradle')
+        tasks = ['clean']
+    }
+
+    task clean(type: Delete, dependsOn: cleanExamples) {
+        delete 'doc/examples/.gradle'
+        delete 'doc/api'
+    }
+
+    task javadoc(type: Javadoc) {
+        def projects = [':sqlg2-core', ':sqlg2-preprocess', 'sqlg2-remote-common', 'sqlg2-remote-server', 'sqlg2-runtime', 'sqlg2-server-common']
+        source = projects.collect { project(it).sourceSets.main.allJava }
+        classpath = files(projects.collect { project(it).sourceSets.main.compileClasspath })
         destinationDir = file("${rootProject.projectDir}/doc/api")
+        failOnError = false
+        options.addStringOption('Xdoclint:none', '-quiet')
 
         include(['sqlg2/GBase.java', 'sqlg2/Parameter.java', 'sqlg2/SqlChecker.java',
                  'sqlg2/Business.java', 'sqlg2/BusinessNoSql.java',  'sqlg2/CheckParams.java', 

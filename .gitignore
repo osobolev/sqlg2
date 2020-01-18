@@ -1,7 +1,7 @@
 out/
 build/
 .gradle/
-/.idea/
+.idea/
 *.log
 wrapper/
 !/gradle/wrapper/
