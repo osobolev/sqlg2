@@ -1,8 +1,7 @@
 package pool;
 
-import com.jolbox.bonecp.BoneCP;
-import com.jolbox.bonecp.BoneCPConfig;
-
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.pool.HikariPool;
 import sqlg2.db.ConnectionManager;
 
 import java.sql.Connection;
@@ -10,14 +9,17 @@ import java.sql.SQLException;
 
 public final class PoolingConnectionManager implements ConnectionManager {
 
-    private final BoneCP pool;
+    private final HikariPool pool;
 
     public PoolingConnectionManager(String driver, String url, String username, String password) throws SQLException {
-        BoneCPConfig config = new BoneCPConfig();
- 	config.setJdbcUrl(url);
-	config.setUsername(username);
-	config.setPassword(password);
-	pool = new BoneCP(config);
+        HikariConfig config = new HikariConfig();
+        config.setDriverClassName(driver);
+        config.setJdbcUrl(url);
+        config.setUsername(username);
+        config.setPassword(password);
+        config.setMaximumPoolSize(10);
+        config.setAutoCommit(false);
+        pool = new HikariPool(config);
     }
 
     public Connection allocConnection() throws SQLException {
@@ -37,6 +39,10 @@ public final class PoolingConnectionManager implements ConnectionManager {
     }
 
     public void close() throws SQLException {
-        pool.shutdown();
+        try {
+            pool.shutdown();
+        } catch (InterruptedException e) {
+            // ignore
+        }
     }
 }
