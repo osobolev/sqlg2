@@ -16,9 +16,9 @@ public final class TestDAO extends GBase {
     @Business
     public Timestamp getTime() throws SQLException {
         /**
-         * SELECT CURRENT_TIMESTAMP FROM (SELECT COUNT(*) FROM EMP)
+         * SELECT CURRENT_TIMESTAMP FROM (SELECT COUNT(*) FROM EMP) c
          */
-        @Prepare PreparedStatement stmt = prepareStatement("SELECT CURRENT_TIMESTAMP FROM (SELECT COUNT(*) FROM EMP)");
+        @Prepare PreparedStatement stmt = prepareStatement("SELECT CURRENT_TIMESTAMP FROM (SELECT COUNT(*) FROM EMP) c");
         return singleRowQueryReturningTimestamp(stmt);
     }
 }
