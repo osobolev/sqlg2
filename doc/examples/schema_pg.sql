@@ -1,6 +1,5 @@
 -- Create user in PostgreSQL:
 -- CREATE USER sqlg2 PASSWORD 'sqlg2';
--- CREATE SCHEMA AUTHORIZATION sqlg2;
 -- CREATE DATABASE sqlg2 OWNER sqlg2;
 
 CREATE TABLE EMP (

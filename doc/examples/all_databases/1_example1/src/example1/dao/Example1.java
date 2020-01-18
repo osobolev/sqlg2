@@ -16,6 +16,12 @@ public final class Example1 extends GBase {
 
     @RowType
     public abstract static class EmpRow {
+
+        public abstract int empNo();
+        public abstract String empName();
+        public abstract String job();
+        public abstract Integer mgr();
+        public abstract java.sql.Date hireDate();
     }
 
     @Business
@@ -25,7 +31,7 @@ public final class Example1 extends GBase {
          *   FROM emp
          * ORDER BY emp_no
          */
-        @Prepare PreparedStatement stmt = null;
+        @Prepare PreparedStatement stmt = prepareStatement("SELECT emp_no, emp_name, job, mgr, hire_date\nFROM emp\nORDER BY emp_no");
         return multiRowQuery(stmt, EmpRow.class);
     }
 
@@ -38,7 +44,7 @@ public final class Example1 extends GBase {
          *   VALUES
          *   (:empNo, :empName, :job, :manager, :hireDate)
          */
-        @Prepare PreparedStatement stmt = null;
+        @Prepare PreparedStatement stmt = prepareStatement("INSERT INTO emp\n(emp_no, emp_name, job, mgr, hire_date)\nVALUES\n(?, ?, ?, ?, ?)", inP(empNo, Integer.class), inP(empName, String.class), inP(job, String.class), inP(manager, Integer.class), inP(hireDate, java.sql.Timestamp.class));
         executeUpdate(stmt);
     }
 }

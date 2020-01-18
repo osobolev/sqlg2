@@ -19,15 +19,17 @@ def runScript(connection, file, delimiter) {
     runner.runScript(new StringReader(text))
 }
 
-task sql << {
-    URLClassLoader loader = GroovyObject.class.classLoader
-    project.buildscript.configurations.classpath.each {
-        loader.addURL(it.toURL())
+task sql {
+    doLast {
+        URLClassLoader loader = GroovyObject.class.classLoader
+        project.buildscript.configurations.classpath.each {
+            loader.addURL(it.toURL())
+        }
+        Class.forName(jdbcDriver, true, loader)
+        def connection = java.sql.DriverManager.getConnection(jdbcUrl, username, password)
+        runScript(connection, 'schema_common.sql', ';')
+        runScript(connection, sqlScript, project.ext.has('sqlDelimiter') ? sqlDelimiter : ';')
     }
-    Class.forName(jdbcDriver, true, loader)
-    def connection = java.sql.DriverManager.getConnection(jdbcUrl, username, password)
-    runScript(connection, 'schema_common.sql', ';')
-    runScript(connection, sqlScript, project.ext.has('sqlDelimiter') ? sqlDelimiter : ';')
 }
 
 ext.gradleTasks = []
@@ -71,26 +73,30 @@ def runBuilds(taskName) {
     }
 }
 
-task clean << {
-    runBuilds('clean')
-    fileTree('.').each {
-        if (it.name == 'build.gradle' || it.name == 'settings.gradle') {
-            delete(new File(it.parent, 'build'))
-            delete(new File(it.parent, '.gradle'))
-            delete(new File(it.parent, 'derby.log'))
+task clean {
+    doLast {
+        runBuilds('clean')
+        fileTree('.').each {
+            if (it.name == 'build.gradle' || it.name == 'settings.gradle') {
+                delete(new File(it.parent, 'build'))
+                delete(new File(it.parent, '.gradle'))
+                delete(new File(it.parent, 'derby.log'))
+            }
         }
-    }
-    def toDelete = []
-    file('.').eachDirRecurse {
-        if (it.name == 'wrapper') {
-            toDelete.add(it)
+        def toDelete = []
+        file('.').eachDirRecurse {
+            if (it.name == 'wrapper') {
+                toDelete.add(it)
+            }
         }
-    }
-    toDelete.each {
-       delete it
+        toDelete.each {
+           delete it
+        }
     }
 }
 
-task check << {
-    runBuilds('run')
+task check {
+    doLast {
+       runBuilds('run')
+    }
 }

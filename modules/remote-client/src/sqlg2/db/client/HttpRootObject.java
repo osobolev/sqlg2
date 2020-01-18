@@ -30,14 +30,11 @@ final class HttpRootObject {
         Object result;
         Throwable error;
         try {
-            IHttpClient conn = clientFactory.getClient();
-            try {
+            try (IHttpClient conn = clientFactory.getClient()) {
                 IClientSerializer.ReqRespProcessor processor = conn.getProcessor();
                 HttpResult httpResult = serializer.clientToServer(processor, id, command, iface, retType, method, paramTypes, params);
                 result = httpResult.result;
                 error = httpResult.error;
-            } finally {
-                conn.close();
             }
         } catch (RuntimeException ex) {
             throw ex;

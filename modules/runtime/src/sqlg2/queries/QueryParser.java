@@ -89,7 +89,7 @@ public final class QueryParser {
 
             private int brackets = 0;
             private int columnCount = 1;
-            private final List<Range> specials = new ArrayList<Range>();
+            private final List<Range> specials = new ArrayList<>();
 
             boolean matchToken(TokenKind id, String currValue, String lastValue, StringBuilder synthQuery) {
                 if (id == TokenKind.R_CHAR) {

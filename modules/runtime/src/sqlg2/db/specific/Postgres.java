@@ -15,29 +15,12 @@ public final class Postgres extends Generic {
     }
 
     public long getNextId(Connection conn, String sequence) throws SQLException {
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
-        try {
-            stmt = conn.prepareStatement(getNextSeqSql(sequence));
-            rs = stmt.executeQuery();
+        try (PreparedStatement stmt = conn.prepareStatement(getNextSeqSql(sequence)); ResultSet rs = stmt.executeQuery()) {
             rs.next();
             return rs.getLong(1);
-        } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException ex) {
-                    // ignore
-                }
-            }
-            if (stmt != null) {
-                try {
-                    stmt.close();
-                } catch (SQLException ex) {
-                    // ignore
-                }
-            }
         }
+        // ignore
+        // ignore
     }
 
     public String getCheckerClassName() {

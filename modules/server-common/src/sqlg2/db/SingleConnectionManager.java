@@ -32,9 +32,7 @@ public class SingleConnectionManager implements ConnectionManager {
 
     public Connection allocConnection() throws SQLException {
         synchronized (lock) {
-            while (true) {
-                if (!allocated)
-                    break;
+            while (allocated) {
                 try {
                     lock.wait();
                 } catch (InterruptedException ex) {

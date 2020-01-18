@@ -32,7 +32,7 @@ public final class TypedList<T> {
 
     public TypedList(Class<T> cls, boolean meta) {
         this.cls = cls;
-        this.list = new ArrayList<T>();
+        this.list = new ArrayList<>();
         this.meta = meta;
     }
 }

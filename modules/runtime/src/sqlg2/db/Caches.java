@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentMap;
 public final class Caches {
 
     private static <K, V> ConcurrentMap<K, V> create() {
-        return new ConcurrentHashMap<K, V>();
+        return new ConcurrentHashMap<>();
     }
 
     /**

@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class Preprocess extends Task {
 
-    private final List<FileSet> filesets = new ArrayList<FileSet>();
+    private final List<FileSet> filesets = new ArrayList<>();
 
     private final Options options = new Options();
 
@@ -172,7 +172,7 @@ public class Preprocess extends Task {
      * Runs ANT task.
      */
     public void execute() throws BuildException {
-        List<File> files = new ArrayList<File>();
+        List<File> files = new ArrayList<>();
         for (FileSet fs : filesets) {
             DirectoryScanner ds = fs.getDirectoryScanner(getProject());
             String[] srcFiles = ds.getIncludedFiles();
@@ -181,7 +181,7 @@ public class Preprocess extends Task {
                 files.add(src);
             }
         }
-        File[] filearr = files.toArray(new File[files.size()]);
+        File[] filearr = files.toArray(new File[0]);
         try {
             new Main(options).workFiles(filearr, filearr);
         } catch (ParseException ex) {

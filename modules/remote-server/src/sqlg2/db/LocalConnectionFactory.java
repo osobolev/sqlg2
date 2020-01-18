@@ -34,7 +34,7 @@ public final class LocalConnectionFactory implements IConnectionFactory {
 
     private final AtomicLong connectionCount = new AtomicLong(0);
 
-    private final Map<String, SessionRecord> connectionMap = new HashMap<String, SessionRecord>();
+    private final Map<String, SessionRecord> connectionMap = new HashMap<>();
 
     /**
      * Constructor.
@@ -106,11 +106,7 @@ public final class LocalConnectionFactory implements IConnectionFactory {
             for (SessionRecord rec : connectionMap.values()) {
                 info[j++] = getInfo(time, rec);
             }
-            Arrays.sort(info, new Comparator<SessionInfo>() {
-                public int compare(SessionInfo o1, SessionInfo o2) {
-                    return Long.valueOf(o1.sessionOrderId).compareTo(o2.sessionOrderId);
-                }
-            });
+            Arrays.sort(info, Comparator.comparingLong(o -> o.sessionOrderId));
             return info;
         }
     }

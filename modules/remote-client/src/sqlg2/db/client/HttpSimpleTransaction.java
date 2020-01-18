@@ -5,8 +5,6 @@ import sqlg2.db.ISimpleTransaction;
 import sqlg2.db.remote.HttpCommand;
 import sqlg2.db.remote.HttpId;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 class HttpSimpleTransaction implements ISimpleTransaction {
@@ -21,11 +19,11 @@ class HttpSimpleTransaction implements ISimpleTransaction {
         this.command = command;
     }
 
-    public final <T extends IDBCommon> T getInterface(final Class<T> iface) {
-        return iface.cast(Proxy.newProxyInstance(iface.getClassLoader(), new Class<?>[] {iface}, new InvocationHandler() {
-            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                return rootObject.httpInvoke(method.getGenericReturnType(), command, id, iface, method.getName(), method.getParameterTypes(), args);
-            }
-        }));
+    public final <T extends IDBCommon> T getInterface(Class<T> iface) {
+        return iface.cast(Proxy.newProxyInstance(
+            iface.getClassLoader(),
+            new Class<?>[] {iface},
+            (proxy, method, args) -> rootObject.httpInvoke(method.getGenericReturnType(), command, id, iface, method.getName(), method.getParameterTypes(), args)
+        ));
     }
 }

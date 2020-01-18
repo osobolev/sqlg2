@@ -4,7 +4,9 @@ import sqlg2.db.SQLGException;
 import sqlg2.queries.QueryParser;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
@@ -71,11 +73,9 @@ public class MapperImpl implements Mapper {
             Array.set(array, 0, getTestObject(cls));
             return array;
         } else if (paramType.isInterface()) {
-            return Proxy.newProxyInstance(paramType.getClassLoader(), new Class<?>[] {paramType}, new InvocationHandler() {
-                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                    Class<?> retType = method.getReturnType();
-                    return getTestObject(retType);
-                }
+            return Proxy.newProxyInstance(paramType.getClassLoader(), new Class<?>[] {paramType}, (proxy, method, args) -> {
+                Class<?> retType = method.getReturnType();
+                return getTestObject(retType);
             });
         } else if (Enum.class.isAssignableFrom(paramType)) {
             try {
@@ -340,7 +340,7 @@ public class MapperImpl implements Mapper {
 
     public List<ColumnInfo> getFields(ResultSetMetaData rsmd, String resultSetVar, String baseVar, boolean meta) throws SQLException {
         int count = rsmd.getColumnCount();
-        List<ColumnInfo> columns = new ArrayList<ColumnInfo>(count);
+        List<ColumnInfo> columns = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
             int j = i + 1;
             String columnName = getColumnName(rsmd, j);
@@ -384,7 +384,7 @@ public class MapperImpl implements Mapper {
                 columns.add(getSimpleColumnInfo(rsmd, j, columnName, resultSetVar, meta));
             }
         }
-        List<ColumnInfo> ret = new ArrayList<ColumnInfo>(columns.size());
+        List<ColumnInfo> ret = new ArrayList<>(columns.size());
         for (ColumnInfo ci : columns) {
             if (ci != null) {
                 ret.add(ci);

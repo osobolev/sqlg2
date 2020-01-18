@@ -23,20 +23,15 @@ public final class ServerJavaSerializer extends BaseJavaSerializer implements IS
         String method;
         Class<?>[] paramTypes;
         Object[] params;
-        ObjectInputStream ois = readData(count(is, true));
-        try {
+        try (ObjectInputStream ois = readData(count(is, true))) {
             id = (HttpId) ois.readObject();
             command = (HttpCommand) ois.readObject();
             iface = (Class<? extends IDBCommon>) ois.readObject();
             method = (String) ois.readObject();
             paramTypes = (Class<?>[]) ois.readObject();
             params = (Object[]) ois.readObject();
-        } catch (ClassNotFoundException ex) {
+        } catch (ClassNotFoundException | InvalidClassException ex) {
             throw new UnrecoverableRemoteException(ex);
-        } catch (InvalidClassException ex) {
-            throw new UnrecoverableRemoteException(ex);
-        } finally {
-            ois.close();
         }
         Object result = null;
         Throwable error = null;
@@ -50,12 +45,9 @@ public final class ServerJavaSerializer extends BaseJavaSerializer implements IS
 
     private void writeResponse(OutputStream os, Object result, Throwable error, boolean isMethod) throws IOException {
         boolean debug = onlyMethods ? isMethod : true;
-        ObjectOutputStream oos = writeData(count(os, debug));
-        try {
+        try (ObjectOutputStream oos = writeData(count(os, debug))) {
             oos.writeObject(result);
             oos.writeObject(error);
-        } finally {
-            oos.close();
         }
     }
 

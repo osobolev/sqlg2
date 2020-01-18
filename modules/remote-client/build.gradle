@@ -1,0 +1,5 @@
+sourceSets.main.java.srcDirs += ['gbase-stub']
+
+dependencies {
+    compile project(':sqlg2-remote-common')
+}

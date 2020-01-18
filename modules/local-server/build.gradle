@@ -1,0 +1,3 @@
+dependencies {
+    compile project(':sqlg2-server-common')
+}

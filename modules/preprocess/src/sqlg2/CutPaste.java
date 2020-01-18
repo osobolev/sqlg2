@@ -13,8 +13,8 @@ abstract class CutPaste {
     final void cutPaste(StringBuilder buf) {
         String pasteText = getPasteText();
         if (pasteText != null) {
-            buf.delete(from - 1, to - 1);
-            buf.insert(from - 1, pasteText);
+            buf.delete(from, to);
+            buf.insert(from, pasteText);
         }
     }
 

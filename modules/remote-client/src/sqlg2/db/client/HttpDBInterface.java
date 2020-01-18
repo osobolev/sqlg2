@@ -29,9 +29,7 @@ final class HttpDBInterface implements IRemoteDBInterface {
         try {
             HttpId transactionId = rootObject.httpInvoke(HttpId.class, HttpCommand.GET_TRANSACTION, info.id);
             return new HttpTransaction(rootObject, transactionId);
-        } catch (SQLException ex) {
-            throw ex;
-        } catch (RuntimeException ex) {
+        } catch (SQLException | RuntimeException ex) {
             throw ex;
         } catch (Throwable ex) {
             throw new RemoteException(ex);

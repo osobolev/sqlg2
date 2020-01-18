@@ -1,9 +1,8 @@
 package sqlg2;
 
-import antlr.Token;
-import antlr.TokenStreamException;
-import sqlg2.lexer.JavaLexer;
-import sqlg2.lexer.JavaTokenTypes;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.Token;
+import sqlg2.lexer.Java8Lexer;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,25 +13,24 @@ class ParserBase {
     static final String PREPROCESSOR_LINE = "/* PREPROCESSOR GENERATED CODE - DO NOT REMOVE THIS LINE */";
 
     protected final String text;
-    private final JavaLexer lexer;
-    private Token token = null;
+    private final Java8Lexer lexer;
+    private Token token;
 
-    protected ParserBase(String text) throws TokenStreamException, IOException {
+    protected ParserBase(String text) throws IOException {
         this.text = preprocessFile(text);
-        lexer = new JavaLexer(new StringReader(this.text));
-        lexer.setTabSize(1);
+        lexer = new Java8Lexer(CharStreams.fromString(this.text));
         token = lexer.nextToken();
     }
 
     protected final boolean eof() {
-        return token.getType() == JavaTokenTypes.EOF;
+        return token.getType() == Java8Lexer.EOF;
     }
 
     protected final Token get() {
         return token;
     }
 
-    protected final void next() throws TokenStreamException {
+    protected final void next() {
         if (!eof()) {
             token = lexer.nextToken();
         }

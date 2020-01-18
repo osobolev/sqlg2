@@ -23,7 +23,7 @@ public final class QueryBuilder {
      */
     public QueryBuilder(CharSequence sql) {
         this.sql = new StringBuilder(sql);
-        this.data = new ArrayList<Parameter>();
+        this.data = new ArrayList<>();
     }
 
     /**
@@ -31,7 +31,7 @@ public final class QueryBuilder {
      */
     public QueryBuilder(QueryPiece piece) {
         this.sql = new StringBuilder(piece.sql);
-        this.data = new ArrayList<Parameter>(Arrays.asList(piece.data));
+        this.data = new ArrayList<>(Arrays.asList(piece.data));
     }
 
     private QueryBuilder append(QueryPiece that, boolean breakLine) {
@@ -147,7 +147,7 @@ public final class QueryBuilder {
     public QueryPiece toQuery() {
         return new QueryPiece(
             sql,
-            data.toArray(new Parameter[data.size()])
+            data.toArray(new Parameter[0])
         );
     }
 

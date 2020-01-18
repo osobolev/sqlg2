@@ -68,11 +68,7 @@ public class LocalWrapperBase {
         try {
             Field sepField = base.getField(field);
             return (String) sepField.get(null);
-        } catch (NoSuchFieldException nsfe) {
-            // ignore
-        } catch (ClassCastException cce) {
-            // ignore
-        } catch (IllegalAccessException iae) {
+        } catch (NoSuchFieldException | IllegalAccessException | ClassCastException nsfe) {
             // ignore
         }
         return defValue;
@@ -155,10 +151,8 @@ public class LocalWrapperBase {
             String implName = getBaseImplName(base);
             Class<?> impl = loadClass(implName);
             return impl.getMethod("create" + cls.getSimpleName(), ResultSet.class, GBase.class);
-        } catch (ClassNotFoundException cnfe) {
+        } catch (ClassNotFoundException | NoSuchMethodException cnfe) {
             cause = cnfe;
-        } catch (NoSuchMethodException nsme) {
-            cause = nsme;
         }
         throw new SQLGException("Cannot find factory method", cause);
     }
@@ -201,10 +195,8 @@ public class LocalWrapperBase {
         try {
             Class<?> impl = getRowImplClass(cls);
             return impl.getConstructor();
-        } catch (ClassNotFoundException cnfe) {
+        } catch (ClassNotFoundException | NoSuchMethodException cnfe) {
             cause = cnfe;
-        } catch (NoSuchMethodException nsme) {
-            cause = nsme;
         }
         throw new SQLGException("Cannot find constructor", cause);
     }
@@ -261,11 +253,7 @@ public class LocalWrapperBase {
                     RuntimeMapper mapper = (RuntimeMapper) rtClass.newInstance();
                     cache.put(base, mapper);
                     return mapper;
-                } catch (ClassNotFoundException ex) {
-                    cause = ex;
-                } catch (InstantiationException ex) {
-                    cause = ex;
-                } catch (IllegalAccessException ex) {
+                } catch (ClassNotFoundException | IllegalAccessException | InstantiationException ex) {
                     cause = ex;
                 }
                 throw new SQLGException("Cannot create runtime mapper", cause);

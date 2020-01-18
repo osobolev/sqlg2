@@ -22,33 +22,15 @@ public class Generic implements SqlChecker {
         if (trim.startsWith("CREATE") || trim.startsWith("ALTER") || trim.startsWith("DROP"))
             return;
         if (trim.startsWith("{")) {
-            CallableStatement cs = null;
-            try {
-                cs = conn.prepareCall(sql);
+            try (CallableStatement cs = conn.prepareCall(sql)) {
                 checkStatement(cs);
-            } finally {
-                if (cs != null) {
-                    try {
-                        cs.close();
-                    } catch (SQLException ex) {
-                        // ignore
-                    }
-                }
             }
+            // ignore
         } else {
-            PreparedStatement ps = null;
-            try {
-                ps = conn.prepareStatement(sql);
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 checkStatement(ps);
-            } finally {
-                if (ps != null) {
-                    try {
-                        ps.close();
-                    } catch (SQLException ex) {
-                        // ignore
-                    }
-                }
             }
+            // ignore
         }
     }
 

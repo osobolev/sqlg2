@@ -96,7 +96,7 @@ public class GBase implements ISimpleTransaction {
         }
 
         if (statements == null) {
-            statements = new ArrayList<Statement>();
+            statements = new ArrayList<>();
         }
         statements.add(stmt);
     }
@@ -526,7 +526,7 @@ public class GBase implements ISimpleTransaction {
     private <T> List<T> columnOfT(PreparedStatement stmt, Class<T> special, Converter<T> converter) throws SQLException {
         ResultSet rs = null;
         try {
-            List<T> list = new ArrayList<T>();
+            List<T> list = new ArrayList<>();
             if (test != null) {
                 test.checkOneColumn(stmt, rs, special, special != null);
             } else {
@@ -705,8 +705,8 @@ public class GBase implements ISimpleTransaction {
      *
      * @param cls class with user-defined mapping (see {@link Mapper} and {@link RuntimeMapper})
      */
-    public final <T> T singleRowQueryReturning(final Class<T> cls, PreparedStatement stmt) throws SQLException {
-        final CustomMapper<T> mapper = getMapper(cls);
+    public final <T> T singleRowQueryReturning(Class<T> cls, PreparedStatement stmt) throws SQLException {
+        CustomMapper<T> mapper = getMapper(cls);
         return singleRowQueryReturningT(stmt, false, cls, true, new Converter<T>() {
             T convert(ResultSet rs) throws SQLException {
                 return mapper.fetch(rs, 1, 1, cls);
@@ -818,8 +818,8 @@ public class GBase implements ISimpleTransaction {
      *
      * @param cls class with user-defined mapping (see {@link Mapper} and {@link RuntimeMapper})
      */
-    public final <T> T optionalRowQueryReturning(final Class<T> cls, PreparedStatement stmt) throws SQLException {
-        final CustomMapper<T> mapper = getMapper(cls);
+    public final <T> T optionalRowQueryReturning(Class<T> cls, PreparedStatement stmt) throws SQLException {
+        CustomMapper<T> mapper = getMapper(cls);
         return optionalRowQueryReturningT(stmt, false, cls, true, new Converter<T>() {
             T convert(ResultSet rs) throws SQLException {
                 return mapper.fetch(rs, 1, 1, cls);
@@ -874,7 +874,7 @@ public class GBase implements ISimpleTransaction {
      */
     public final String[] columnOfString(PreparedStatement stmt) throws SQLException {
         List<String> list = columnOfT(stmt, null, STRING_CONVERTER);
-        return list.toArray(new String[list.size()]);
+        return list.toArray(new String[0]);
     }
 
     /**
@@ -883,7 +883,7 @@ public class GBase implements ISimpleTransaction {
      */
     public final Object[] columnOfObject(PreparedStatement stmt) throws SQLException {
         List<Object> list = columnOfT(stmt, null, OBJECT_CONVERTER);
-        return list.toArray(new Object[list.size()]);
+        return list.toArray(new Object[0]);
     }
 
     /**
@@ -892,8 +892,8 @@ public class GBase implements ISimpleTransaction {
      *
      * @param cls class with user-defined mapping (see {@link Mapper} and {@link RuntimeMapper})
      */
-    public final <T> List<T> columnOf(final Class<T> cls, PreparedStatement stmt) throws SQLException {
-        final CustomMapper<T> mapper = getMapper(cls);
+    public final <T> List<T> columnOf(Class<T> cls, PreparedStatement stmt) throws SQLException {
+        CustomMapper<T> mapper = getMapper(cls);
         return columnOfT(stmt, cls, new Converter<T>() {
             T convert(ResultSet rs) throws SQLException {
                 return mapper.fetch(rs, 1, 1, cls);
@@ -960,7 +960,7 @@ public class GBase implements ISimpleTransaction {
     public final <T> List<T> multiRowQuery(PreparedStatement stmt, Class<T> cls) throws SQLException {
         ResultSet rs = null;
         try {
-            List<T> result = new ArrayList<T>();
+            List<T> result = new ArrayList<>();
             if (test != null) {
                 test.getFields(cls, stmt, rs, false);
             } else {
@@ -1061,8 +1061,8 @@ public class GBase implements ISimpleTransaction {
                 rs = stmt.getGeneratedKeys();
                 ResultSetMetaData rsmd = rs.getMetaData();
                 int count = rsmd.getColumnCount();
-                Number[] ret = new Number[count];
                 rs.next();
+                Number[] ret = new Number[count];
                 for (int i = 0; i < count; i++) {
                     ret[i] = (Number) rs.getObject(i + 1);
                 }
@@ -1086,7 +1086,7 @@ public class GBase implements ISimpleTransaction {
     }
 
     private Object[] getOutParameters(CallableStatement cs, Parameter[] in) throws SQLException {
-        List<Object> result = new ArrayList<Object>();
+        List<Object> result = new ArrayList<>();
         boolean executed = false;
         for (int i = 0; i < in.length; i++) {
             int j = i + 1;
@@ -1105,11 +1105,8 @@ public class GBase implements ISimpleTransaction {
                     ResultSet rs = (ResultSet) cs.getObject(j);
                     test.getFields(type, null, rs, typedList.meta);
                 } else {
-                    ResultSet rs = (ResultSet) cs.getObject(j);
-                    try {
+                    try (ResultSet rs = (ResultSet) cs.getObject(j)) {
                         getResultSet(rs, typedList);
-                    } finally {
-                        rs.close();
                     }
                 }
                 res = typedList.list;
@@ -1118,7 +1115,7 @@ public class GBase implements ISimpleTransaction {
             }
             result.add(res);
         }
-        return result.toArray(new Object[result.size()]);
+        return result.toArray(new Object[0]);
     }
 
     /**
@@ -1332,19 +1329,10 @@ public class GBase implements ISimpleTransaction {
             test.checkSql(sql);
             return;
         }
-        Statement st = null;
-        try {
-            st = getConnection().createStatement();
+        try (Statement st = getConnection().createStatement()) {
             st.execute(sql);
-        } finally {
-            if (st != null) {
-                try {
-                    st.close();
-                } catch (SQLException ex) {
-                    // ignore
-                }
-            }
         }
+        // ignore
     }
 
     /**

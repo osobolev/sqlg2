@@ -6,8 +6,6 @@ import sqlg2.db.RuntimeMapper;
 import sqlg2.db.SQLGException;
 import sqlg2.queries.QueryParser;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.*;
 import java.util.HashMap;
@@ -30,7 +28,7 @@ final class GTestImpl extends GTest {
     List<ColumnInfo> columns = null;
     boolean meta;
     Class<?> returnClass = null;
-    final Map<String, Class<?>> paramTypeMap = new HashMap<String, Class<?>>();
+    final Map<String, Class<?>> paramTypeMap = new HashMap<>();
     Map<String, List<ParamCutPaste>> bindMap = null;
     private Map<Statement, String> stmtMap = null;
 
@@ -96,11 +94,7 @@ final class GTestImpl extends GTest {
         Object ret = Proxy.newProxyInstance(
             iface.getClassLoader(),
             new Class[] {iface},
-            new InvocationHandler() {
-                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                    return getValue(method.getReturnType(), null);
-                }
-            }
+            (proxy, method, args) -> getValue(method.getReturnType(), null)
         );
         return iface.cast(ret);
     }
@@ -194,7 +188,7 @@ final class GTestImpl extends GTest {
     public void statementCreated(Statement stmt, String sql) {
         if (sql != null) {
             if (stmtMap == null) {
-                stmtMap = new HashMap<Statement, String>();
+                stmtMap = new HashMap<>();
             }
             stmtMap.put(stmt, sql);
         }

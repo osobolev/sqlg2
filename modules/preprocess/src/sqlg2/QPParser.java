@@ -38,12 +38,8 @@ final class QPParser {
     }
 
     BindVarCutPaste getStatementCutPaste(int from, int to, String sql) throws ParseException {
-        final List<Pair> pairs = new ArrayList<Pair>();
-        String rest = QueryReplacer.replace(sql, null, new QueryReplacer.Appender() {
-            public void append(String buf, String ident) {
-                pairs.add(new Pair(buf, ident));
-            }
-        }, false);
+        List<Pair> pairs = new ArrayList<>();
+        String rest = QueryReplacer.replace(sql, null, (buf, ident) -> pairs.add(new Pair(buf, ident)), false);
         return new QPBuilder().getStatementCutPaste(from, to, pairs, rest);
     }
 
@@ -68,7 +64,7 @@ final class QPParser {
 
         private boolean first = true;
         private final StringBuilder total = new StringBuilder();
-        private final List<ParamCutPaste> pieces = new ArrayList<ParamCutPaste>();
+        private final List<ParamCutPaste> pieces = new ArrayList<>();
 
         private int append1(String what, boolean single) {
             int whatPos;
@@ -85,15 +81,12 @@ final class QPParser {
                 } else {
                     if (first) {
                         total.append("new sqlg2.db.QueryBuilder(");
-                        whatPos = total.length();
-                        total.append(what);
-                        total.append(")");
                     } else {
                         total.append(".appendLit(");
-                        whatPos = total.length();
-                        total.append(what);
-                        total.append(")");
                     }
+                    whatPos = total.length();
+                    total.append(what);
+                    total.append(")");
                 }
             }
             first = false;
@@ -102,13 +95,13 @@ final class QPParser {
 
         private void appendString(String str, boolean single) throws ParseException {
             if (str.length() > 0) {
-                List<String> usedParameters = new ArrayList<String>();
+                List<String> usedParameters = new ArrayList<>();
                 String parsed = QueryParser.getParameters(str, usedParameters);
                 String sql = QueryReplacer.escape(parsed);
                 if (usedParameters.size() > 0 && !onlySql) {
                     StringBuilder params = new StringBuilder();
                     boolean first = true;
-                    List<ParamInfo> paramPositions = new ArrayList<ParamInfo>();
+                    List<ParamInfo> paramPositions = new ArrayList<>();
                     for (String parameter : usedParameters) {
                         if (first) {
                             first = false;
@@ -148,16 +141,12 @@ final class QPParser {
                     for (ParamInfo pos : paramPositions) {
                         String id = pos.id;
                         String pv = pos.programString;
-                        int from = pred.length() + ppos + predParams.length() + pos.position + 1;
+                        int from = pred.length() + ppos + predParams.length() + pos.position;
                         int to = from + pv.length();
                         ParamCutPaste cp = new ParamCutPaste(from, to, pos.expression, pos.out);
                         cp.replaceTo = pv;
                         pieces.add(cp);
-                        List<ParamCutPaste> list = bindMap.get(id);
-                        if (list == null) {
-                            list = new ArrayList<ParamCutPaste>();
-                            bindMap.put(id, list);
-                        }
+                        List<ParamCutPaste> list = bindMap.computeIfAbsent(id, k -> new ArrayList<>());
                         list.add(cp);
                     }
                 } else {

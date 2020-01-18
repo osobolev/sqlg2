@@ -35,7 +35,7 @@ final class SafeSimpleTransaction implements ISimpleTransaction {
     }
 
     public <T extends IDBCommon> T getInterface(Class<T> iface) {
-        return db.wrap(iface, new SafeWrapper<T>(iface, db, this));
+        return db.wrap(iface, new SafeWrapper<>(iface, db, this));
     }
 
     <T extends IDBCommon> T createInterface(Class<T> iface) {

@@ -1,17 +1,15 @@
-buildscript {
-    apply from: 'properties.gradle'
-}
-
-allprojects {
-    group = 'com.github.osobolev.sqlg2'
-    version = '4.0'
-}
-
 subprojects {
+    group = 'com.github.osobolev.sqlg2'
+    version = '5.0'
+
     apply plugin: 'java'
     apply plugin: 'maven'
 
     compileJava.options.encoding = 'UTF-8'
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+    sourceSets.main.java.srcDirs = ['src']
+    sourceSets.test.java.srcDirs = ['test']
 
     repositories {
         mavenLocal()
@@ -45,119 +43,4 @@ subprojects {
         exclude 'sqlg2/lexer/**'
         exclude 'sqlg2/queries/**'
     }
-}
-
-def buildSource(dirs) {
-    def sd = ['src']
-    dirs.each { 
-        sd.add("$rootProject.projectDir/modules/$it/src")
-    }
-    sd
-}
-
-project(':sqlg2-client') {
-    sourceCompatibility = '1.5'
-    targetCompatibility = '1.5'
-    compileJava.options.bootClasspath = "${jdk5}/jre/lib/rt.jar"
-
-    sourceSets.main.java.srcDirs = buildSource(['core', 'remote-common', 'remote-client']) + ['gbase-stub']
-}
-
-project(':sqlg2-full') {
-    sourceCompatibility = '1.6'
-    targetCompatibility = '1.6'
-    compileJava.options.bootClasspath = "${jdk5}/jre/lib/rt.jar"
-
-    sourceSets.main.java.srcDirs = buildSource(['core', 'runtime', 'remote-common', 'server-common', 'remote-server', 'remote-client', 'local-server', 'preprocess'])
-
-    configurations { antlrLib }
-
-    dependencies {
-        compileOnly files('lib/antlr-runtime.jar')
-        compileOnly 'org.apache.ant:ant:1.9.5'
-        antlrLib 'antlr:antlr:2.7.7'
-    }
-    
-    jar {
-        from zipTree('lib/antlr-runtime.jar')
-    }
-
-    task lexer(type: JavaExec) {
-        main = 'antlr.Tool'
-        classpath = configurations.antlrLib
-        args '-o', 'src/sqlg2/lexer', 'grammar/java15.g'
-    }
-}
-
-project(':sqlg2-local') {
-    sourceCompatibility = '1.5'
-    targetCompatibility = '1.5'
-    compileJava.options.bootClasspath = "${jdk5}/jre/lib/rt.jar"
-
-    sourceSets.main.java.srcDirs = buildSource(['core', 'runtime', 'server-common', 'local-server'])
-}
-
-project(':sqlg2-runtime') {
-    sourceCompatibility = '1.5'
-    targetCompatibility = '1.5'
-    compileJava.options.bootClasspath = "${jdk5}/jre/lib/rt.jar"
-
-    sourceSets.main.java.srcDirs = buildSource(['core', 'runtime', 'remote-common', 'server-common', 'remote-server', 'remote-client', 'local-server'])
-}
-
-project(':sqlg2-gwt') {
-    sourceCompatibility = '1.8'
-    targetCompatibility = '1.8'
-
-    compileJava { onlyIf { false } }
-
-    jar {
-        into ('sqlg2') {
-            def dir = "${rootProject.projectDir}/modules/preprocess/src/sqlg2"
-            from(["${dir}/RowType.java", "${dir}/EditableRowType.java", "src/sqlg2/SQLG.gwt.xml"])
-        }
-    }
-}
-
-project(':') {
-
-    task build(type: Copy, dependsOn: subprojects.jar) {
-        from subprojects.jar
-        into 'lib'
-    }
-
-    task install(dependsOn: build) {
-    }
-    
-    task clean(type: Delete) {
-        delete 'lib'
-        delete 'distr'
-        delete 'doc/api'
-    }
-
-    task cleanExamples (type: GradleBuild) {
-        buildFile = file('doc/examples/build.gradle')
-        tasks = ['clean']
-    }
-
-    task binDistr(type: Zip, dependsOn: [build, project(':sqlg2-full').javadoc, cleanExamples]) {
-        baseName = "sqlg2-bin-${project.version}"
-        destinationDir = file('distr')
-        from '.'
-        include 'lib/**'
-        include 'doc/**'
-    }
-
-    task srcDistr(type: Zip, dependsOn: [build, project(':sqlg2-full').javadoc, cleanExamples]) {
-        baseName = "sqlg2-src-${project.version}"
-        destinationDir = file('distr')
-        from '.'
-        include 'doc/**'
-        include 'modules/**'
-        exclude 'modules/**/build/**'
-        include 'build.gradle'
-        include 'settings.gradle'
-    }
-
-    task distr(dependsOn: [binDistr, srcDistr])
 }

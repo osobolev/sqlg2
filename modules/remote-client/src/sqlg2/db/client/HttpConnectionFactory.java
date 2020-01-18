@@ -7,7 +7,6 @@ import sqlg2.db.remote.HttpCommand;
 import sqlg2.db.remote.HttpDBInterfaceInfo;
 import sqlg2.db.remote.HttpId;
 
-import java.io.IOException;
 import java.net.*;
 import java.sql.SQLException;
 
@@ -23,12 +22,8 @@ public final class HttpConnectionFactory implements IConnectionFactory {
         this(new URI(url).normalize().toURL(), proxy, application);
     }
 
-    public HttpConnectionFactory(final URL url, final Proxy proxy, String application) {
-        this(application, new IHttpClientFactory() {
-            public IHttpClient getClient() throws IOException {
-                return DefaultHttpClient.create(url, proxy, 3000);
-            }
-        });
+    public HttpConnectionFactory(URL url, Proxy proxy, String application) {
+        this(application, () -> DefaultHttpClient.create(url, proxy, 3000));
     }
 
     public HttpConnectionFactory(String application, IHttpClientFactory clientFactory) {
@@ -44,9 +39,7 @@ public final class HttpConnectionFactory implements IConnectionFactory {
         try {
             HttpDBInterfaceInfo info = rootObject.httpInvoke(HttpDBInterfaceInfo.class, HttpCommand.OPEN, id, user, password);
             return new HttpDBInterface(rootObject, info);
-        } catch (SQLException ex) {
-            throw ex;
-        } catch (RuntimeException ex) {
+        } catch (SQLException | RuntimeException ex) {
             throw ex;
         } catch (Throwable ex) {
             throw new RemoteException(ex);

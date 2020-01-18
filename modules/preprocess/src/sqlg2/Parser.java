@@ -1,8 +1,7 @@
 package sqlg2;
 
-import antlr.Token;
-import antlr.TokenStreamException;
-import sqlg2.lexer.JavaTokenTypes;
+import org.antlr.v4.runtime.Token;
+import sqlg2.lexer.Java8Lexer;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -25,24 +24,24 @@ final class Parser extends ParserBase {
     private static final String SQLG_ANNOTATION = annotationName(SQLG.class);
 
     private static final int[] MODIFIERS = {
-        JavaTokenTypes.PUBLIC, JavaTokenTypes.PROTECTED, JavaTokenTypes.PRIVATE,
-        JavaTokenTypes.STATIC, JavaTokenTypes.ABSTRACT, JavaTokenTypes.FINAL,
-        JavaTokenTypes.NATIVE, JavaTokenTypes.SYNCHRONIZED, JavaTokenTypes.TRANSIENT,
-        JavaTokenTypes.VOLATILE, JavaTokenTypes.STRICTFP
+        Java8Lexer.PUBLIC, Java8Lexer.PROTECTED, Java8Lexer.PRIVATE,
+        Java8Lexer.STATIC, Java8Lexer.ABSTRACT, Java8Lexer.FINAL,
+        Java8Lexer.NATIVE, Java8Lexer.SYNCHRONIZED, Java8Lexer.TRANSIENT,
+        Java8Lexer.VOLATILE, Java8Lexer.STRICTFP
     };
 
-    private final List<CutPaste> fragments = new ArrayList<CutPaste>();
-    private final List<Entry> entries = new ArrayList<Entry>();
-    private final List<String> imports = new ArrayList<String>();
+    private final List<CutPaste> fragments = new ArrayList<>();
+    private final List<Entry> entries = new ArrayList<>();
+    private final List<String> imports = new ArrayList<>();
     private AfterCutPaste after = null;
     private boolean needsProcessing = false;
-    private final Map<String, List<ParamCutPaste>> bindMap = new HashMap<String, List<ParamCutPaste>>();
+    private final Map<String, List<ParamCutPaste>> bindMap = new HashMap<>();
     private final Map<String, RowTypeCutPaste> rowTypeMap;
-    private final List<String> parameters = new ArrayList<String>();
+    private final List<String> parameters = new ArrayList<>();
     private final String className;
 
     Parser(String text, String className,
-           Map<String, RowTypeCutPaste> rowTypeMap) throws TokenStreamException, IOException {
+           Map<String, RowTypeCutPaste> rowTypeMap) throws IOException {
         super(text);
         this.className = className;
         this.rowTypeMap = rowTypeMap;
@@ -88,10 +87,10 @@ final class Parser extends ParserBase {
         return buf.toString();
     }
 
-    private Entry parseMethodHeader(String javadoc, String annotation) throws ParseException, TokenStreamException {
-        int headerFrom = get().getColumn();
+    private Entry parseMethodHeader(String javadoc, String annotation) throws ParseException {
+        int headerFrom = get().getStartIndex();
         int headerTo = -1;
-        List<String> params = new ArrayList<String>();
+        List<String> params = new ArrayList<>();
         int typeFrom = -1;
         int typeTo = -1;
         String lastIdent = null;
@@ -103,22 +102,22 @@ final class Parser extends ParserBase {
         while (!eof()) {
             Token t = get();
             int id = t.getType();
-            if (id == JavaTokenTypes.LCURLY) {
-                headerTo = get().getColumn();
+            if (id == Java8Lexer.LBRACE) {
+                headerTo = get().getStartIndex();
                 next();
                 break;
-            } else if (id == JavaTokenTypes.LPAREN) {
+            } else if (id == Java8Lexer.LPAREN) {
                 if (wasParen) {
                     parenCount++;
                 } else {
                     wasParen = true;
                     lastIdent = null;
                 }
-            } else if (id == JavaTokenTypes.LT) {
+            } else if (id == Java8Lexer.LT) {
                 if (wasParen) {
                     genCount++;
                 }
-            } else if (id == JavaTokenTypes.COMMA) {
+            } else if (id == Java8Lexer.COMMA) {
                 if (wasParen && !parenClosed) {
                     if (parenCount <= 0 && genCount <= 0) {
                         if (lastIdent != null) {
@@ -126,7 +125,7 @@ final class Parser extends ParserBase {
                         }
                     }
                 }
-            } else if (id == JavaTokenTypes.RPAREN) {
+            } else if (id == Java8Lexer.RPAREN) {
                 if (wasParen && !parenClosed) {
                     if (parenCount <= 0) {
                         if (lastIdent != null) {
@@ -137,27 +136,27 @@ final class Parser extends ParserBase {
                         parenCount--;
                     }
                 }
-            } else if (id == JavaTokenTypes.GT) {
+            } else if (id == Java8Lexer.GT) {
                 if (wasParen && !parenClosed) {
                     if (genCount > 0) {
                         genCount--;
                     }
                 }
-            } else if (id == JavaTokenTypes.IDENT) {
+            } else if (id == Java8Lexer.Identifier) {
                 lastIdent = t.getText();
                 if (!wasParen) {
                     entryName = lastIdent;
-                    typeTo = t.getColumn();
+                    typeTo = t.getStartIndex();
                     if (typeFrom < 0) {
-                        typeFrom = t.getColumn();
+                        typeFrom = t.getStartIndex();
                     }
                 }
-            } else if (id == JavaTokenTypes.SEMI) {
+            } else if (id == Java8Lexer.SEMI) {
                 throw new ParseException("Unexpected semicolon", className + (entryName == null ? "" : "." + entryName));
             } else {
                 if (!wasParen) {
                     if (typeFrom < 0) {
-                        if (!(id == JavaTokenTypes.WS || id == JavaTokenTypes.SL_COMMENT || id == JavaTokenTypes.ML_COMMENT)) {
+                        if (!(id == Java8Lexer.WS || id == Java8Lexer.LINE_COMMENT || id == Java8Lexer.COMMENT)) {
                             boolean isModifier = false;
                             for (int m : MODIFIERS) {
                                 if (id == m) {
@@ -166,7 +165,7 @@ final class Parser extends ParserBase {
                                 }
                             }
                             if (!isModifier) {
-                                typeFrom = t.getColumn();
+                                typeFrom = t.getStartIndex();
                             }
                         }
                     }
@@ -181,10 +180,10 @@ final class Parser extends ParserBase {
         boolean publish = !CHECK_PARAMS_ANNOTATION.equals(annotation);
         return new Entry(
             javadoc,
-            text.substring(headerFrom - 1, headerTo - 1).trim(),
-            text.substring(typeFrom - 1, typeTo - 1).trim(),
+            text.substring(headerFrom, headerTo).trim(),
+            text.substring(typeFrom, typeTo).trim(),
             entryName,
-            params.toArray(new String[params.size()]),
+            params.toArray(new String[0]),
             noTest, publish
         );
     }
@@ -204,7 +203,7 @@ final class Parser extends ParserBase {
         }
     }
 
-    private AssignDescriptor parseAssign() throws TokenStreamException {
+    private AssignDescriptor parseAssign() {
         int from = -1;
         int to = -1;
         int identCount = 0;
@@ -212,17 +211,17 @@ final class Parser extends ParserBase {
         String varName = null;
         while (!eof()) {
             Token t = get();
-            if (t.getType() == JavaTokenTypes.ASSIGN) {
+            if (t.getType() == Java8Lexer.ASSIGN) {
                 next();
                 if (!eof()) {
-                    from = get().getColumn();
+                    from = get().getStartIndex();
                 }
                 break;
-            } else if (t.getType() == JavaTokenTypes.SEMI) {
-                from = to = t.getColumn();
+            } else if (t.getType() == Java8Lexer.SEMI) {
+                from = to = t.getStartIndex();
                 assign = " =";
                 break;
-            } else if (t.getType() == JavaTokenTypes.IDENT) {
+            } else if (t.getType() == Java8Lexer.Identifier) {
                 identCount++;
                 if (identCount == 2) {
                     varName = t.getText();
@@ -233,8 +232,8 @@ final class Parser extends ParserBase {
         if (to < 0) {
             while (!eof()) {
                 Token t = get();
-                if (t.getType() == JavaTokenTypes.SEMI) {
-                    to = t.getColumn();
+                if (t.getType() == Java8Lexer.SEMI) {
+                    to = t.getStartIndex();
                     next();
                     break;
                 }
@@ -245,7 +244,7 @@ final class Parser extends ParserBase {
     }
 
     private AssignDescriptor parseStatement(String entryName, String lastSqlVar, String lastSqlQuery,
-                                            boolean allowOutParams, String whatToCall, String addParameter, boolean onlySql) throws TokenStreamException, ParseException {
+                                            boolean allowOutParams, String whatToCall, String addParameter, boolean onlySql) throws ParseException {
         if (lastSqlVar == null && lastSqlQuery == null) {
             return null;
         }
@@ -270,7 +269,7 @@ final class Parser extends ParserBase {
         return desc;
     }
 
-    private void parseMethodBody(String entryName) throws TokenStreamException, ParseException {
+    private void parseMethodBody(String entryName) throws ParseException {
         int count = 1;
         String lastSqlQuery = null;
         int lastSqlQueryCount = -1;
@@ -279,9 +278,9 @@ final class Parser extends ParserBase {
         while (!eof()) {
             Token t = get();
             int id = t.getType();
-            if (id == JavaTokenTypes.LCURLY) {
+            if (id == Java8Lexer.LBRACE) {
                 count++;
-            } else if (id == JavaTokenTypes.RCURLY) {
+            } else if (id == Java8Lexer.RBRACE) {
                 count--;
                 if (lastSqlQueryCount >= 0 && count < lastSqlQueryCount) {
                     lastSqlQuery = null;
@@ -295,17 +294,17 @@ final class Parser extends ParserBase {
                     next();
                     break;
                 }
-            } else if (id == JavaTokenTypes.ML_COMMENT) {
+            } else if (id == Java8Lexer.COMMENT) {
                 lastSqlQuery = extractQuery(t.getText());
                 lastSqlQueryCount = count;
                 lastSqlVar = null;
                 lastSqlVarCount = -1;
-            } else if (id == JavaTokenTypes.AT) {
+            } else if (id == Java8Lexer.AT) {
                 next();
                 if (eof())
                     break;
                 t = get();
-                if (t.getType() == JavaTokenTypes.IDENT && SQL_ANNOTATION.equals(t.getText())) {
+                if (t.getType() == Java8Lexer.Identifier && SQL_ANNOTATION.equals(t.getText())) {
                     if (lastSqlQuery != null) {
                         next();
                         AssignDescriptor desc = parseStatement(entryName, null, lastSqlQuery, true, null, "", true);
@@ -314,28 +313,28 @@ final class Parser extends ParserBase {
                             lastSqlVarCount = count;
                         }
                     }
-                } else if (t.getType() == JavaTokenTypes.IDENT && QUERY_ANNOTATION.equals(t.getText())) {
+                } else if (t.getType() == Java8Lexer.Identifier && QUERY_ANNOTATION.equals(t.getText())) {
                     next();
                     parseStatement(entryName, lastSqlVar, lastSqlQuery, false, "createQueryPiece", "", false);
-                } else if (t.getType() == JavaTokenTypes.IDENT && STATEMENT_ANNOTATION.equals(t.getText())) {
+                } else if (t.getType() == Java8Lexer.Identifier && STATEMENT_ANNOTATION.equals(t.getText())) {
                     next();
                     parseStatement(entryName, lastSqlVar, lastSqlQuery, false, "prepareStatement", "", false);
-                } else if (t.getType() == JavaTokenTypes.IDENT && KEY_STATEMENT_ANNOTATION.equals(t.getText())) {
+                } else if (t.getType() == Java8Lexer.Identifier && KEY_STATEMENT_ANNOTATION.equals(t.getText())) {
                     next();
                     String auto = null;
                     if (!eof()) {
                         t = get();
-                        if (t.getType() == JavaTokenTypes.LPAREN) {
+                        if (t.getType() == Java8Lexer.LPAREN) {
                             next();
                             if (!eof()) {
                                 t = get();
-                                if (t.getType() == JavaTokenTypes.STRING_LITERAL) {
+                                if (t.getType() == Java8Lexer.StringLiteral) {
                                     auto = t.getText().substring(1, t.getText().length() - 1);
                                     next();
                                 }
                             }
                             while (!eof()) {
-                                if (get().getType() == JavaTokenTypes.RPAREN) {
+                                if (get().getType() == Java8Lexer.RPAREN) {
                                     next();
                                     break;
                                 }
@@ -359,7 +358,7 @@ final class Parser extends ParserBase {
                         autoKeys = "ALL_KEYS";
                     }
                     parseStatement(entryName, lastSqlVar, lastSqlQuery, false, "prepareStatementKey", autoKeys + ", ", false);
-                } else if (t.getType() == JavaTokenTypes.IDENT && CALL_ANNOTATION.equals(t.getText())) {
+                } else if (t.getType() == Java8Lexer.Identifier && CALL_ANNOTATION.equals(t.getText())) {
                     next();
                     parseStatement(entryName, lastSqlVar, lastSqlQuery, true, "executeCall", "", false);
                 }
@@ -369,7 +368,7 @@ final class Parser extends ParserBase {
         }
     }
 
-    private RowTypeCutPaste parseClass(boolean editable) throws TokenStreamException {
+    private RowTypeCutPaste parseClass(boolean editable) {
         String className = null;
         boolean justClass = false;
         boolean isInterface = false;
@@ -377,16 +376,16 @@ final class Parser extends ParserBase {
         while (!eof()) {
             Token t = get();
             int id = t.getType();
-            if (id == JavaTokenTypes.CLASS || id == JavaTokenTypes.INTERFACE) {
+            if (id == Java8Lexer.CLASS || id == Java8Lexer.INTERFACE) {
                 justClass = true;
-                isInterface = id == JavaTokenTypes.INTERFACE;
-            } else if (id == JavaTokenTypes.LCURLY) {
+                isInterface = id == Java8Lexer.INTERFACE;
+            } else if (id == Java8Lexer.LBRACE) {
                 next();
                 if (!eof()) {
-                    from = get().getColumn();
+                    from = get().getStartIndex();
                 }
                 break;
-            } else if (id == JavaTokenTypes.IDENT) {
+            } else if (id == Java8Lexer.Identifier) {
                 if (justClass) {
                     className = t.getText();
                 }
@@ -398,12 +397,12 @@ final class Parser extends ParserBase {
         int to = -1;
         while (!eof()) {
             Token t = get();
-            if (t.getType() == JavaTokenTypes.LCURLY) {
+            if (t.getType() == Java8Lexer.LBRACE) {
                 count++;
-            } else if (t.getType() == JavaTokenTypes.RCURLY) {
+            } else if (t.getType() == Java8Lexer.RBRACE) {
                 count--;
                 if (count <= 0) {
-                    to = t.getColumn();
+                    to = t.getStartIndex();
                     next();
                     break;
                 }
@@ -418,33 +417,33 @@ final class Parser extends ParserBase {
         return null;
     }
 
-    private void parseHeader() throws TokenStreamException {
+    private void parseHeader() {
         boolean wasClass = false;
         while (!eof()) {
             Token t = get();
             int id = t.getType();
-            if (id == JavaTokenTypes.LCURLY) {
+            if (id == Java8Lexer.LBRACE) {
                 if (wasClass) {
                     next();
                     break;
                 }
-            } else if (id == JavaTokenTypes.AT) {
+            } else if (id == Java8Lexer.AT) {
                 next();
                 if (eof())
                     break;
                 t = get();
-                if (t.getType() == JavaTokenTypes.IDENT && SQLG_ANNOTATION.equals(t.getText())) {
+                if (t.getType() == Java8Lexer.Identifier && SQLG_ANNOTATION.equals(t.getText())) {
                     needsProcessing = true;
                    next();
                 }
                 continue;
-            } else if (id == JavaTokenTypes.IMPORT) {
+            } else if (id == Java8Lexer.IMPORT) {
                 next();
                 StringBuilder buf = new StringBuilder();
                 while (!eof()) {
                     t = get();
                     id = t.getType();
-                    if (id == JavaTokenTypes.SEMI) {
+                    if (id == Java8Lexer.SEMI) {
                         next();
                         break;
                     }
@@ -453,14 +452,14 @@ final class Parser extends ParserBase {
                 }
                 imports.add(buf.toString().trim());
                 continue;
-            } else if (id == JavaTokenTypes.CLASS) {
+            } else if (id == Java8Lexer.CLASS) {
                 wasClass = true;
             }
             next();
         }
     }
 
-    void parseAll() throws TokenStreamException, ParseException {
+    void parseAll() throws ParseException {
         parseHeader();
         if (!needsProcessing)
             return;
@@ -471,12 +470,12 @@ final class Parser extends ParserBase {
         while (!eof()) {
             Token t = get();
             int id = t.getType();
-            if (id == JavaTokenTypes.AT) {
+            if (id == Java8Lexer.AT) {
                 next();
                 if (eof())
                     break;
                 t = get();
-                if (t.getType() == JavaTokenTypes.IDENT) {
+                if (t.getType() == Java8Lexer.Identifier) {
                     if (ROWTYPE_ANNOTATION.equals(t.getText()) || EDITABLE_ROWTYPE_ANNOTATION.equals(t.getText())) {
                         next();
                         if (!eof()) {
@@ -497,21 +496,21 @@ final class Parser extends ParserBase {
                 lastComment = null;
                 identBeforeParen = null;
                 continue;
-            } else if (id == JavaTokenTypes.RCURLY) {
-                lastCurly = t.getColumn();
+            } else if (id == Java8Lexer.RBRACE) {
+                lastCurly = t.getStartIndex();
                 next();
                 break;
-            } else if (id == JavaTokenTypes.LCURLY) {
+            } else if (id == Java8Lexer.LBRACE) {
                 next();
                 parseMethodBody(identBeforeParen);
                 lastComment = null;
                 identBeforeParen = null;
                 continue;
-            } else if (id == JavaTokenTypes.LPAREN) {
+            } else if (id == Java8Lexer.LPAREN) {
                 identBeforeParen = lastIdent;
-            } else if (id == JavaTokenTypes.IDENT) {
+            } else if (id == Java8Lexer.Identifier) {
                 lastIdent = t.getText();
-            } else if (id == JavaTokenTypes.ML_COMMENT) {
+            } else if (id == Java8Lexer.COMMENT) {
                 lastComment = t.getText();
             }
             next();
@@ -544,7 +543,7 @@ final class Parser extends ParserBase {
     }
 
     String[] getImports() {
-        return imports.toArray(new String[imports.size()]);
+        return imports.toArray(new String[0]);
     }
 
     Map<String, List<ParamCutPaste>> getBindMap() {

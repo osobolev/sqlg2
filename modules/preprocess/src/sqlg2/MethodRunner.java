@@ -1,10 +1,9 @@
 package sqlg2;
 
-import antlr.Token;
-import antlr.TokenStreamException;
+import org.antlr.v4.runtime.Token;
 import sqlg2.db.JdbcInterface;
 import sqlg2.db.SQLGLogger;
-import sqlg2.lexer.JavaLexer;
+import sqlg2.lexer.Java8Lexer;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
@@ -35,7 +34,7 @@ final class MethodRunner {
     private final StringBuilder later = new StringBuilder();
     private final Map<String, ColumnData> generatedIn;
     private final Map<String, ColumnData> generatedOut;
-    private final Set<String> generatedMethod = new HashSet<String>();
+    private final Set<String> generatedMethod = new HashSet<>();
 
     MethodRunner(Class<?> cls, String className, String encoding, String tab,
                  String separate, List<Entry> entries, File srcRoot, boolean gwt, SQLGWarn warn, boolean log,
@@ -351,7 +350,7 @@ final class MethodRunner {
         return types;
     }
 
-    private void generateImplOut(String entryName, Class<?> cls, boolean meta) throws ParseException, IOException, TokenStreamException {
+    private void generateImplOut(String entryName, Class<?> cls, boolean meta) throws ParseException, IOException {
         List<ColumnInfo> columns = test.columns;
         if (columns == null)
             throw new ParseException("Method " + entryName + " should perform SELECT for " + cls.getSimpleName());
@@ -381,18 +380,18 @@ final class MethodRunner {
             while (!parser.eof()) {
                 Token token = parser.get();
                 int type = token.getType();
-                if (type == JavaLexer.LCURLY) {
+                if (type == Java8Lexer.LBRACE) {
                     if (start == null) {
                         start = token;
                     }
-                } else if (type == JavaLexer.RCURLY) {
+                } else if (type == Java8Lexer.RBRACE) {
                     end = token;
-                } else if (type == JavaLexer.AT) {
+                } else if (type == Java8Lexer.AT) {
                     parser.next();
                     if (parser.eof())
                         break;
                     Token ann = parser.get();
-                    if (ann.getType() == JavaLexer.IDENT) {
+                    if (ann.getType() == Java8Lexer.Identifier) {
                         if (Parser.EDITABLE_ROWTYPE_ANNOTATION.equals(ann.getText())) {
                             editable = true;
                         }
@@ -417,7 +416,7 @@ final class MethodRunner {
             }
             generateConstructors(buf, "", cls.getSimpleName(), columns, types, gwt);
             generateGettersSetters(buf, "", true, types, columns, editable);
-            CutPaste cp = new SimpleCutPaste(start.getColumn() + 1, end.getColumn(), buf.toString());
+            CutPaste cp = new SimpleCutPaste(start.getStartIndex() + 1, end.getStartIndex(), buf.toString());
             StringBuilder textBuf = new StringBuilder(parser.text);
             cp.cutPaste(textBuf);
             PrintWriter pw = open(file, encoding);
@@ -450,7 +449,7 @@ final class MethodRunner {
     }
 
     private void checkParamTypes(List<String> allParameters) throws ParseException {
-        Set<String> missingParams = new HashSet<String>(allParameters);
+        Set<String> missingParams = new HashSet<>(allParameters);
         missingParams.removeAll(test.paramTypeMap.keySet());
         if (missingParams.size() > 0) {
             StringBuilder buf = new StringBuilder();

@@ -49,65 +49,30 @@ public final class Oracle implements DBSpecific {
     }
 
     public long getNextId(Connection conn, String sequence) throws SQLException {
-        PreparedStatement stmt = null;
-        ResultSet rs = null;
-        try {
-            stmt = conn.prepareStatement(getNextSeqSql(sequence));
-            rs = stmt.executeQuery();
+        try (PreparedStatement stmt = conn.prepareStatement(getNextSeqSql(sequence)); ResultSet rs = stmt.executeQuery()) {
             rs.next();
             return rs.getLong(1);
-        } finally {
-            if (rs != null) {
-                try {
-                    rs.close();
-                } catch (SQLException ex) {
-                    // ignore
-                }
-            }
-            if (stmt != null) {
-                try {
-                    stmt.close();
-                } catch (SQLException ex) {
-                    // ignore
-                }
-            }
         }
+        // ignore
+        // ignore
     }
 
     public void freeClob(Connection conn, Clob clob) throws SQLException {
-        CallableStatement clobStmt = null;
-        try {
-            clobStmt = conn.prepareCall("BEGIN IF dbms_lob.isTemporary(?) <> 0 THEN dbms_lob.freeTemporary(?); END IF; END;");
+        try (CallableStatement clobStmt = conn.prepareCall("BEGIN IF dbms_lob.isTemporary(?) <> 0 THEN dbms_lob.freeTemporary(?); END IF; END;")) {
             clobStmt.setClob(1, clob);
             clobStmt.setClob(2, clob);
             clobStmt.executeUpdate();
-        } finally {
-            if (clobStmt != null) {
-                try {
-                    clobStmt.close();
-                } catch (SQLException ex) {
-                    // ignore
-                }
-            }
         }
+        // ignore
     }
 
     public void freeBlob(Connection conn, Blob blob) throws SQLException {
-        CallableStatement blobStmt = null;
-        try {
-            blobStmt = conn.prepareCall("BEGIN IF dbms_lob.isTemporary(?) <> 0 THEN dbms_lob.freeTemporary(?); END IF; END;");
+        try (CallableStatement blobStmt = conn.prepareCall("BEGIN IF dbms_lob.isTemporary(?) <> 0 THEN dbms_lob.freeTemporary(?); END IF; END;")) {
             blobStmt.setBlob(1, blob);
             blobStmt.setBlob(2, blob);
             blobStmt.executeUpdate();
-        } finally {
-            if (blobStmt != null) {
-                try {
-                    blobStmt.close();
-                } catch (SQLException ex) {
-                    // ignore
-                }
-            }
         }
+        // ignore
     }
 
     private static Object invokeLobMethod(Method method, Object lob) throws SQLException {

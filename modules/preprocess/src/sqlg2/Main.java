@@ -91,19 +91,10 @@ final class Main extends Options {
     }
 
     private static void writeFile(File file, String text, String encoding) throws IOException {
-        Writer wr = null;
-        try {
-            wr = MethodRunner.open(file, encoding);
+        try (Writer wr = MethodRunner.open(file, encoding)) {
             wr.write(text);
-        } finally {
-            if (wr != null) {
-                try {
-                    wr.close();
-                } catch (IOException ex) {
-                    // ignore
-                }
-            }
         }
+        // ignore
     }
 
     private static void copyFile(File in, File out) throws IOException {
@@ -201,7 +192,7 @@ final class Main extends Options {
         // 2. parse & copy to temp
         Parser[] parsers = new Parser[in.length];
         needAnyWork = false;
-        Map<String, RowTypeCutPaste> rowTypeMap = new HashMap<String, RowTypeCutPaste>();
+        Map<String, RowTypeCutPaste> rowTypeMap = new HashMap<>();
         for (int i = 0; i < in.length; i++) {
             if (needWork[i]) {
                 String text = readFile(in[i], encoding);
@@ -235,8 +226,8 @@ final class Main extends Options {
         // 3. run methods
         boolean inited = false;
         WrapperGeneratorFactory factory = null;
-        Map<String, ColumnData> generatedIn = new HashMap<String, ColumnData>();
-        Map<String, ColumnData> generatedOut = new HashMap<String, ColumnData>();
+        Map<String, ColumnData> generatedIn = new HashMap<>();
+        Map<String, ColumnData> generatedOut = new HashMap<>();
         for (int i = 0; i < in.length; i++) {
             if (!needWork[i])
                 continue;
@@ -369,22 +360,5 @@ final class Main extends Options {
         if (!dir.delete()) {
             dir.deleteOnExit();
         }
-    }
-
-    public static void main(String[] args) throws Exception {
-//        Options o = new Options();
-//        o.cleanup = false;
-//        o.checkTime = false;
-//        o.tmpDir = new File("D:\\TEMP");
-//        o.srcRoot = new File("D:\\home\\projects\\sqlg2\\doc\\examples\\2_big\\src");
-//        o.classpath = "D:\\home\\projects\\gic\\install\\lib\\ojdbc14.jar;D:\\home\\projects\\gic\\install\\lib\\nls_charset12.jar;D:\\home\\projects\\sqlg2\\sqlg-2.3.0.jar";
-//        o.wrapPack = "rmi";
-//        o.implPack = "rmi";
-//        o.user = "sqlg2";
-//        o.pass = "sqlg2";
-//        o.url = "jdbc:oracle:thin:@localhost:1521:ST";
-//        //o.mapperClass = "complex.mapper.CustomMapperImpl";
-//        File[] files = {new File("D:\\home\\projects\\sqlg2\\doc\\examples\\2_big\\src\\big\\dao\\BigDAO.java")};
-//        new Main(o).workFiles(files, files);
     }
 }

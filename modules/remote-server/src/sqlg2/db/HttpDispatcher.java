@@ -32,7 +32,7 @@ public final class HttpDispatcher {
     private final LocalConnectionFactory lw;
     private IServerSerializer serializer = new ServerJavaSerializer();
     private final WatcherThread watcher;
-    private final ConcurrentMap<Long, ITransaction> transactions = new ConcurrentHashMap<Long, ITransaction>();
+    private final ConcurrentMap<Long, ITransaction> transactions = new ConcurrentHashMap<>();
 
     private final AtomicLong transactionCount = new AtomicLong(0);
 
@@ -41,7 +41,7 @@ public final class HttpDispatcher {
         abstract Object perform(HttpId id, String hostName, Object... params) throws Exception;
     }
 
-    private final EnumMap<HttpCommand, HttpAction> actions = new EnumMap<HttpCommand, HttpAction>(HttpCommand.class);
+    private final EnumMap<HttpCommand, HttpAction> actions = new EnumMap<>(HttpCommand.class);
 
     {
         actions.put(HttpCommand.OPEN, new HttpAction() {
@@ -131,11 +131,7 @@ public final class HttpDispatcher {
     public HttpDispatcher(String application, SessionFactory sessionFactory, DBSpecific specific, SQLGLogger logger) {
         this.application = application;
         this.lw = new LocalConnectionFactory(sessionFactory, specific, logger, true);
-        this.watcher = new WatcherThread(1, new Runnable() {
-            public void run() {
-                lw.checkActivity();
-            }
-        });
+        this.watcher = new WatcherThread(1, lw::checkActivity);
         this.watcher.runThread();
     }
 
@@ -179,7 +175,6 @@ public final class HttpDispatcher {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private Object dispatch(HttpId id, HttpCommand command,
                             Class<? extends IDBCommon> iface, String method, Class<?>[] paramTypes, Object[] params,
                             String hostName) throws Throwable {
@@ -229,12 +224,8 @@ public final class HttpDispatcher {
      * @param is       input data
      * @param os       output data
      */
-    public void dispatch(final String hostName, InputStream is, OutputStream os) throws IOException {
-        IServerSerializer.ServerCall call = new IServerSerializer.ServerCall() {
-            public Object call(HttpId id, HttpCommand command, Class<? extends IDBCommon> iface, String method, Class<?>[] paramTypes, Object[] params) throws Throwable {
-                return dispatch(id, command, iface, method, paramTypes, params, hostName);
-            }
-        };
+    public void dispatch(String hostName, InputStream is, OutputStream os) throws IOException {
+        IServerSerializer.ServerCall call = (id, command, iface, method, paramTypes, params) -> dispatch(id, command, iface, method, paramTypes, params, hostName);
         serializer.serverToClient(is, call, os);
     }
 

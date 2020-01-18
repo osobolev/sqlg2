@@ -21,11 +21,11 @@ final class Runner {
     }
 
     private void compile(File srcRoot, String encoding, String classpath, File file) throws ParseException {
-        List<String> params = new ArrayList<String>(Arrays.asList(
+        List<String> params = new ArrayList<>(Arrays.asList(
             "-classpath",
             tmpDir.getAbsolutePath()
-                + File.pathSeparator + srcRoot.getAbsolutePath()
-                + (classpath == null ? "" : File.pathSeparator + classpath),
+            + File.pathSeparator + srcRoot.getAbsolutePath()
+            + (classpath == null ? "" : File.pathSeparator + classpath),
             "-d", tmpDir.getAbsolutePath(),
             file.getAbsolutePath()
         ));
@@ -33,7 +33,7 @@ final class Runner {
             params.addAll(0, Arrays.asList("-encoding", encoding));
         }
 
-        String[] arguments = params.toArray(new String[params.size()]);
+        String[] arguments = params.toArray(new String[0]);
         try {
             JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
             ByteArrayOutputStream buf = new ByteArrayOutputStream();
@@ -57,7 +57,7 @@ final class Runner {
         }
     }
 
-    Class<?> compileAndLoad(File srcRoot, File file, final String className, String encoding, String classpath) throws MalformedURLException, ClassNotFoundException, ParseException {
+    Class<?> compileAndLoad(File srcRoot, File file, String className, String encoding, String classpath) throws MalformedURLException, ClassNotFoundException, ParseException {
         compile(srcRoot, encoding, classpath, file);
 
         StringTokenizer tok = new StringTokenizer(classpath, File.pathSeparator);

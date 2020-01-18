@@ -35,17 +35,11 @@ public class DefaultHttpClient implements IHttpClient, IClientSerializer.ReqResp
     public HttpResult process(IClientSerializer.ReqRespConsumer consumer) throws IOException {
         connected = true;
         conn.connect();
-        OutputStream os = conn.getOutputStream();
-        try {
+        try (OutputStream os = conn.getOutputStream()) {
             consumer.writeToServer(os);
-        } finally {
-            os.close();
         }
-        InputStream is = conn.getInputStream();
-        try {
+        try (InputStream is = conn.getInputStream()) {
             return consumer.readFromServer(is);
-        } finally {
-            is.close();
         }
     }
 

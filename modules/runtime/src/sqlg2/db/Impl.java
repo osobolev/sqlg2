@@ -184,14 +184,10 @@ public class Impl {
     }
 
     public static SQLException wrap(String message, Throwable ex) {
-        SQLException sex = new SQLException(message);
-        sex.initCause(ex);
-        return sex;
+        return new SQLException(message, ex);
     }
 
     public static SQLException wrap(Throwable ex) {
-        SQLException sex = new SQLException(ex.toString());
-        sex.initCause(ex);
-        return sex;
+        return new SQLException(ex.toString(), ex);
     }
 }
