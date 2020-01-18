@@ -78,8 +78,10 @@ task clean {
         runBuilds('clean')
         fileTree('.').each {
             if (it.name == 'build.gradle' || it.name == 'settings.gradle') {
+                if (it.parentFile != file('.')) {
+                    delete(new File(it.parent, '.gradle'))
+                }
                 delete(new File(it.parent, 'build'))
-                delete(new File(it.parent, '.gradle'))
                 delete(new File(it.parent, 'derby.log'))
             }
         }
