@@ -1,4 +1,0 @@
-dependencies {
-    compile project(':sqlg2-remote-common')
-    compile project(':sqlg2-server-common')
-}

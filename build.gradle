@@ -25,6 +25,75 @@ subprojects {
     javadoc.enabled = false
 }
 
+project(':sqlg2-core') {
+}
+
+project(':sqlg2-local-server') {
+    dependencies {
+        compile project(':sqlg2-server-common')
+    }
+}
+
+project(':sqlg2-preprocess') {
+
+    configurations { antlr }
+
+    dependencies {
+        compile project(':sqlg2-runtime')
+        compile 'org.antlr:antlr4-runtime:4.7.2'
+        compileOnly 'org.apache.ant:ant:1.9.5'
+
+        testCompile 'org.postgresql:postgresql:42.2.9'
+
+        antlr 'org.antlr:antlr4:4.7.2'
+    }
+
+    task lexer(type: JavaExec) {
+        onlyIf { file('grammar/Java8Lexer.g4').lastModified() > file('src/sqlg2/lexer/Java8Lexer.java').lastModified() }
+        main = 'org.antlr.v4.Tool'
+        classpath = configurations.antlr
+        args '-package', 'sqlg2.lexer', '-o', 'src/sqlg2/lexer', '-encoding', 'UTF-8', 'grammar/Java8Lexer.g4'
+    }
+    compileJava.dependsOn lexer
+}
+
+project(':sqlg2-remote-client') {
+    dependencies {
+        compile project(':sqlg2-remote-common')
+    }
+}
+
+project(':sqlg2-remote-common') {
+    dependencies {
+        compile project(':sqlg2-core')
+    }
+}
+
+project(':sqlg2-remote-server') {
+    dependencies {
+        compile project(':sqlg2-remote-common')
+        compile project(':sqlg2-server-common')
+    }
+}
+
+project(':sqlg2-runtime') {
+    dependencies {
+        compile project(':sqlg2-core')
+    }
+}
+
+project(':sqlg2-runtime-stub') {
+    dependencies {
+        compile project(':sqlg2-remote-client')
+    }
+}
+
+project(':sqlg2-server-common') {
+    dependencies {
+        compile project(':sqlg2-runtime')
+    }
+}
+
 project(':') {
 
     task cleanExamples(type: GradleBuild) {

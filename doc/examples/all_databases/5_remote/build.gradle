@@ -19,7 +19,7 @@ dependencies {
     compileOnly 'com.github.osobolev.sqlg2:sqlg2-preprocess:5.0'
     compile 'com.github.osobolev.sqlg2:sqlg2-remote-server:5.0'
     compile 'com.github.osobolev.sqlg2:sqlg2-remote-client:5.0'
-    compile 'org.eclipse.jetty:jetty-servlet:9.4.24.v20191120'
+    compile 'org.eclipse.jetty:jetty-servlet:9.4.26.v20200117'
     runtime driverClasspath
 
     sqlg 'com.github.osobolev.sqlg2:sqlg2-preprocess:5.0'
