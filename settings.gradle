@@ -7,11 +7,8 @@ def add(name) {
 }
 
 add('core')
-add('local-server')
 add('preprocess')
 add('remote-client')
 add('remote-common')
 add('remote-server')
 add('runtime')
-add('runtime-stub')
-add('server-common')

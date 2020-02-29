@@ -28,9 +28,9 @@ subprojects {
 project(':sqlg2-core') {
 }
 
-project(':sqlg2-local-server') {
+project(':sqlg2-runtime') {
     dependencies {
-        compile project(':sqlg2-server-common')
+        compile project(':sqlg2-core')
     }
 }
 
@@ -57,39 +57,21 @@ project(':sqlg2-preprocess') {
     compileJava.dependsOn lexer
 }
 
-project(':sqlg2-remote-client') {
-    dependencies {
-        compile project(':sqlg2-remote-common')
-    }
-}
-
 project(':sqlg2-remote-common') {
     dependencies {
         compile project(':sqlg2-core')
     }
 }
 
+project(':sqlg2-remote-client') {
+    dependencies {
+        compile project(':sqlg2-remote-common')
+    }
+}
+
 project(':sqlg2-remote-server') {
     dependencies {
         compile project(':sqlg2-remote-common')
-        compile project(':sqlg2-server-common')
-    }
-}
-
-project(':sqlg2-runtime') {
-    dependencies {
-        compile project(':sqlg2-core')
-    }
-}
-
-project(':sqlg2-runtime-stub') {
-    dependencies {
-        compile project(':sqlg2-remote-client')
-    }
-}
-
-project(':sqlg2-server-common') {
-    dependencies {
         compile project(':sqlg2-runtime')
     }
 }
@@ -107,7 +89,7 @@ project(':') {
     }
 
     task javadoc(type: Javadoc) {
-        def projects = [':sqlg2-core', ':sqlg2-preprocess', 'sqlg2-remote-common', 'sqlg2-remote-server', 'sqlg2-runtime', 'sqlg2-server-common']
+        def projects = [':sqlg2-core', ':sqlg2-preprocess', 'sqlg2-remote-common', 'sqlg2-remote-server', 'sqlg2-runtime']
         source = projects.collect { project(it).sourceSets.main.allJava }
         classpath = files(projects.collect { project(it).sourceSets.main.compileClasspath })
         destinationDir = file("${rootProject.projectDir}/doc/api")
