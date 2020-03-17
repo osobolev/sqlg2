@@ -68,10 +68,12 @@ final class GTestImpl extends GTest {
         case Types.CHAR:
         case Types.VARCHAR:
         case Types.LONGVARCHAR:
+        case Types.CLOB:
             return STRING;
         case Types.BINARY:
         case Types.VARBINARY:
         case Types.LONGVARBINARY:
+        case Types.BLOB:
             return bytesValue();
         case Types.BOOLEAN:
             return BOOLEAN;
@@ -81,10 +83,6 @@ final class GTestImpl extends GTest {
             return timeValue();
         case Types.TIMESTAMP:
             return timestampValue();
-        case Types.CLOB:
-            return STRING;
-        case Types.BLOB:
-            return bytesValue();
         default:
             return objectValue();
         }

@@ -7,7 +7,7 @@ import java.sql.SQLException;
  * Can be viewed as a {@link java.sql.Connection} analog,
  * while really it can be a whole pool of connections.
  */
-public interface IDBInterface {
+public interface IDBInterface extends AutoCloseable {
 
     /**
      * Creates "simple" transaction.

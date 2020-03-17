@@ -6,7 +6,7 @@ import java.sql.SQLException;
 /**
  * Connection pool interface. Pool is created once for each connected user.
  */
-public interface ConnectionManager {
+public interface ConnectionManager extends AutoCloseable {
 
     /**
      * Error message ({@link SQLException#getMessage()})

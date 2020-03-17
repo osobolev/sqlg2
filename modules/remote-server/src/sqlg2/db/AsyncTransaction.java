@@ -14,14 +14,9 @@ final class AsyncTransaction implements ISimpleTransaction {
     public <T extends IDBCommon> T getInterface(Class<T> iface) {
         return iface.cast(Proxy.newProxyInstance(iface.getClassLoader(), new Class[] {iface}, (proxy, method, args) -> {
             Thread thread = new Thread(() -> {
-                try {
-                    DBInterface background = db.createBackground();
-                    try {
-                        T target = background.getSimpleTransaction().getInterface(iface);
-                        method.invoke(target, args);
-                    } finally {
-                        background.close();
-                    }
+                try (DBInterface background = db.createBackground()) {
+                    T target = background.getSimpleTransaction().getInterface(iface);
+                    method.invoke(target, args);
                 } catch (InvocationTargetException ex) {
                     db.getLogger().error(ex.getTargetException());
                 } catch (Exception ex) {
