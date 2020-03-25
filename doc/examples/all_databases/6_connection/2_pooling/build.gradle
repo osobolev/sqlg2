@@ -17,7 +17,7 @@ configurations { sqlg }
 
 dependencies {
     compileOnly 'com.github.osobolev.sqlg2:sqlg2-preprocess:5.0'
-    compile 'com.github.osobolev.sqlg2:sqlg2-local-server:5.0'
+    compile 'com.github.osobolev.sqlg2:sqlg2-runtime:5.0'
     compile 'com.zaxxer:HikariCP:3.4.2'
     runtime driverClasspath
     runtime 'org.slf4j:slf4j-nop:1.7.12'

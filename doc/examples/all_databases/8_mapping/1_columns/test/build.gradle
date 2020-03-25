@@ -16,7 +16,7 @@ configurations { sqlg }
 dependencies {
     compile project(':mapper')
     compileOnly 'com.github.osobolev.sqlg2:sqlg2-preprocess:5.0'
-    compile 'com.github.osobolev.sqlg2:sqlg2-local-server:5.0'
+    compile 'com.github.osobolev.sqlg2:sqlg2-runtime:5.0'
     runtime driverClasspath
 
     sqlg 'com.github.osobolev.sqlg2:sqlg2-preprocess:5.0'
