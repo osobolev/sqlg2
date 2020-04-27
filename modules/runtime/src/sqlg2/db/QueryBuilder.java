@@ -59,6 +59,13 @@ public final class QueryBuilder {
     }
 
     /**
+     * Same as {@link #append(CharSequence)}
+     */
+    public QueryBuilder append(CharSequence sql, Parameter... data) {
+        return append(new QueryPiece(sql, data));
+    }
+
+    /**
      * Appends query piece. Parameter <code>that</code> can be null (then it is ignored).
      * Nothing is inserted between pieces. Usually used by preprocessor-generated code.
      */
